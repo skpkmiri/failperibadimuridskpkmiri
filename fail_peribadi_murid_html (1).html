@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fail Peribadi Murid - SK Pendidikan Khas Miri</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome untuk Ikon (Pengganti Lucide-React) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel untuk kompilasi JSX dalam pelayar -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Firebase SDK Compat (Sesuai untuk HTML tunggal tanpa bundler) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-900 antialiased min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Ikon Component Wrapper untuk menggunakan FontAwesome seperti komponen React
+        const Icon = ({ name, className = "", title = "" }) => (
+            <i className={`fa-solid fa-${name} ${className}`} title={title}></i>
+        );
+
+        const AUTHORIZED_ICS = [
+          "810808135501", 
+          "910110136471", 
+          "880927135284", 
+          "920422135813", 
+          "970226135344",
+          "010505131225", "980331086010"
+        ];
+
+        // Special Admin ICs for permanent deletion
+        const ADMIN_DATA_ICS = [
+          "810808135501", 
+          "910110136471", 
+          "880927135284", 
+          "920422135813", 
+          "970226135344"
+        ];
+
+        // Special Admin ICs for editing announcements
+        const ANNOUNCEMENT_ADMIN_ICS = [
+          "810808135501", 
+          "910110136471", 
+          "880927135284", 
+          "920422135813", 
+          "970226135344"
+        ];
+
+        // Firebase Initialization
+        const firebaseConfig = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : {
+          apiKey: "AIzaSyD3GRV6VIpECWq48M2jWq_QEQ9RUEbHBBw",
+          authDomain: "fail-peribadi-murid.firebaseapp.com",
+          projectId: "fail-peribadi-murid",
+          storageBucket: "fail-peribadi-murid.firebasestorage.app",
+          messagingSenderId: "804840511723",
+          appId: "1:804840511723:web:1cbc82e294c55cea21c6ae",
+          measurementId: "G-ZRKX0NXHZJ"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'fail-peribadi-murid';
+
+        const DOCUMENT_CATEGORIES = [
+          "KAD 001",
+          "BORANG MAKLUMAT PELAJAR",
+          "BUKU LAPORAN PELAJAR",
+          "SALINAN SIJIL LAHIR PELAJAR",
+          "SALINAN KAD PENGENALAN",
+          "SIJIL - SIJIL KURIKULUM DAN KOKURIKULUM",
+          "SURAT KEBENARAN AM IBUBAPA",
+          "SALINAN MAKLUMAT DISIPLIN",
+          "SALINAN KAD OKU"
+        ];
+
+        const EMPTY_RECORD = {
+          nama: "", noPendaftaran: "", tarikhMasuk: "", jantina: "", bangsa: "",
+          asramaHarian: "", tarikhLahir: "", tempatLahir: "", namaBapa: "",
+          pekerjaanBapa: "", alamat: "", noKPBapa: "", noTelRumah: "",
+          noHPPenjaga: "", jawatanKhas: "", extra1: "", extra2: "", extra3: "", extra4: "", extra5: "", extra6: ""
+        };
+
+        const INITIAL_STUDENTS = [
+          { id: "1", kelas: "PRASEKOLAH", nama: "AAYAN HANS BIN ISMAILY", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "2", kelas: "PRASEKOLAH", nama: "GRAHAM TEO TING HAN", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "3", kelas: "PRASEKOLAH", nama: "ISLEY NGIENG SEE EN", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "4", kelas: "PRASEKOLAH", nama: "MUHAMMAD YUNUS BIN MUHAMMAD HAZIM", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "5", kelas: "PRASEKOLAH", nama: "NOAH ASHRAF BIN KHAIRUL NIZZAL", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "6", kelas: "PRASEKOLAH", nama: "DAISY TANG EE XI", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "7", kelas: "PRASEKOLAH", nama: "ZARA BINTI MOHAMAD SUHAIMI", tahun: 2026, darjah: "PRA", guru: "Guru Kelas" },
+          { id: "8", kelas: "1BD", nama: "FAVIAN CARLOS MELCOM", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "9", kelas: "1BD", nama: "RAYMOND ACHO SAW CHEN YEE", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "10", kelas: "1BD", nama: "HANNA LUMI RAJA BINTI ABDULLAH", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "11", kelas: "1BP DELIMA", nama: "ADHAM SHARIF BIN ADANAN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "12", kelas: "1BP DELIMA", nama: "EISSA ZACHRY BIN MOHAMMAD NASRIN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "13", kelas: "1BP DELIMA", nama: "EZRA RAIS BIN NOR MANSOR", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "14", kelas: "1BP DELIMA", nama: "JONATHAN CHIN EN ZE", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "15", kelas: "1BP DELIMA", nama: "LUTH IMTIYYAZ BIN MOHD KHAIROOL IFWAT", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "16", kelas: "1BP DELIMA", nama: "MUHAMMAD IZZ NAUFAL BIN ABDULLAH", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "17", kelas: "1BP DELIMA", nama: "DAPHNE GRACE ANAK SEBASTIAN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "18", kelas: "1BP DELIMA", nama: "RENNY TAMANG WEE WEN HUI", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "19", kelas: "1BP DELIMA", nama: "ZIA ZHUFAIRAH BINTI ZAHIRUDDIN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "20", kelas: "1BP ZAMRUD", nama: "DARREN KUAN SHENG WEI", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "21", kelas: "1BP ZAMRUD", nama: "EMANUEL NGAU GARY LEJAU", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "22", kelas: "1BP ZAMRUD", nama: "MOHAMAD MIKAEL BIN MOHAMAD MUSTAPA", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "23", kelas: "1BP ZAMRUD", nama: "MOHAMMAD AZMAN SHAH BIN MOHAMMAD AZREEN SHAH", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "24", kelas: "1BP ZAMRUD", nama: "MUHAMMAD ZULQARNAIN BIN MUHAMMAD HAZIM", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "25", kelas: "1BP ZAMRUD", nama: "RAFAEL EDEN PAREN FRANKIE", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "26", kelas: "1BP ZAMRUD", nama: "AISYAH ARISSA BINTI MASHRIE", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "27", kelas: "1BP ZAMRUD", nama: "AISYAH AZZAHRA BINTI AZLAN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "28", kelas: "1BP ZAMRUD", nama: "HAYLEY BONG XIN RUI", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "29", kelas: "1BP ZAMRUD", nama: "IZZ ZARA AFEEYA BINTI KAMURUDIN", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "30", kelas: "1BP ZAMRUD", nama: "NUR SYIFAA QISYA BINTI AZMI", tahun: 2026, darjah: "1", guru: "Guru Kelas" },
+          { id: "31", kelas: "2BP DELIMA", nama: "AARON AIDEN EVANS ANAK PENNY", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "32", kelas: "2BP DELIMA", nama: "ALVIEN CORNELIUS ANAK ANTHONY", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "33", kelas: "2BP DELIMA", nama: "DANISH IMAN BIN MAZUAN", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "34", kelas: "2BP DELIMA", nama: "IQBAL RAID BIN MOHAMAD RASHID", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "35", kelas: "2BP DELIMA", nama: "RAPHAEL RAY RIO", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "36", kelas: "2BP DELIMA", nama: "RAZAN ELIZABETH BINTI FARIQ", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "37", kelas: "2BP DELIMA", nama: "SHERRAPHYNNA LEANNE BINTANG ANAK ALVIN LU NGEN", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "38", kelas: "2BP ZAMRUD", nama: "ABANG BUKHORI HAKIMI BIN ABANG ABDUL MUIZZ", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "39", kelas: "2BP ZAMRUD", nama: "AHMAD ZHARIFF BIN ZURY ZAMRIL", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "40", kelas: "2BP ZAMRUD", nama: "AISY SYUHAIMEIL BIN ABDULLAH", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "41", kelas: "2BP ZAMRUD", nama: "ARYAN NUFAEL BIN MUHAMMAD ASRI", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "42", kelas: "2BP ZAMRUD", nama: "EL SHIRAZY BIN AZLAN", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "43", kelas: "2BP ZAMRUD", nama: "NUH ADLI BIN FADZIL NOOR", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "44", kelas: "2BP ZAMRUD", nama: "RIAZ ESHAL BIN MOHAMMAD SYAHIR", tahun: 2026, darjah: "2", guru: "Guru Kelas" },
+          { id: "45", kelas: "3BD", nama: "ALEXZANDER NGAOH ANAK MOSES KUDI", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "46", kelas: "3BD", nama: "NATALIE WEE YAN TONG", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "47", kelas: "3BP", nama: "BRANDON LIEW KA CHUN", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "48", kelas: "3BP", nama: "IVAN YOEL ANAK AUGUSTINE GILBERT", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "49", kelas: "3BP", nama: "MOHAMAD AIMAN ASHRAF BIN ROSLAN", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "50", kelas: "3BP", nama: "MOHAMAD QAYYID QUZAER BIN KHAIRUL FADZLI", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "51", kelas: "3BP", nama: "MUHAMMAD AISY WAFIQ BIN JAIDI", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "52", kelas: "3BP", nama: "SHAKEEL BISYARI BIN SHAHRIL", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "53", kelas: "3BP", nama: "THRIS TOH TERMANTOH", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "54", kelas: "3BP", nama: "THESSA GOH YAN AI", tahun: 2026, darjah: "3", guru: "Guru Kelas" },
+          { id: "55", kelas: "4BD", nama: "IZZ IBTISAM BIN AHMAD MUJAHID", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "56", kelas: "4BD", nama: "ISABELL EVE WAN AJANG", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "57", kelas: "4BL", nama: "FELIXSON MOSES ANAK JONATHAN SAGA", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "58", kelas: "4BL", nama: "IZZ DASUKI BIN ABDULLAH", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "59", kelas: "4BL", nama: "JULIANIE UNGAN ANING", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "60", kelas: "4BP", nama: "HUMPHREY GRUNNER ANAK ANDREW LUANG", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "61", kelas: "4BP", nama: "LING YEW KIAT", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "62", kelas: "4BP", nama: "MCLAIRE NYARINE ANAK STEPHEN", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "63", kelas: "4BP", nama: "CASSANDRA MARIA JEGA ANAK SEMALIE", tahun: 2026, darjah: "4", guru: "Guru Kelas" },
+          { id: "64", kelas: "5BD", nama: "DAREN TING TIAN ZJUN", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "65", kelas: "5BD", nama: "HAIDIEL SHAHRY BIN SOFIZAN", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "66", kelas: "5BP", nama: "ARYAN WONG BIN MOHD ASWAD WONG", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "67", kelas: "5BP", nama: "DIONYSIUS DELROY ANAK RAYMOND", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "68", kelas: "5BP", nama: "LO JIA HONG", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "69", kelas: "5BP", nama: "ZAIM ZAHRAN BIN ZAINUDDIN", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "70", kelas: "5BP", nama: "NURUL JANNAH BINTI MINHAD", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "71", kelas: "5BP", nama: "SITI ARISSA AFIQAH BINTI MOHD. ISWAN", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "72", kelas: "5BP", nama: "WEE YEE TIEN", tahun: 2026, darjah: "5", guru: "Guru Kelas" },
+          { id: "73", kelas: "6BD", nama: "MIRZHAN HAMIZI BIN MOHAMMAD FAIZAL", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "74", kelas: "6BD", nama: "ATHENA KHO XUAN", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "75", kelas: "6BP", nama: "IAN MCKENZIE ANAK MAT", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "76", kelas: "6BP", nama: "IRFAN BIN MOHAMMAD EZZARDDIN", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "77", kelas: "6BP", nama: "MOHAMMAD IZZUANDIE BIN ABDULLAH", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "78", kelas: "6BP", nama: "EVANGELINE KAREN PAULUS", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "79", kelas: "6BP", nama: "IHYA ZAFIRAH BINTI HANAFIE", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "80", kelas: "6BP", nama: "JOSELINE JONG SHI YING", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "81", kelas: "6BP", nama: "NUR AINA BINTI BARAHIM", tahun: 2026, darjah: "6", guru: "Guru Kelas" },
+          { id: "82", kelas: "6BP", nama: "SURAIYA KHAIRINA BINTI KHAIRUL", tahun: 2026, darjah: "6", guru: "Guru Kelas" }
+        ];
+
+        const App = () => {
+          const [isAuthenticated, setIsAuthenticated] = useState(false);
+          const [loginIC, setLoginIC] = useState('');
+          const [loginError, setLoginError] = useState('');
+          const [isDbReady, setIsDbReady] = useState(false);
+          
+          const [currentView, setCurrentView] = useState('list'); // 'list', 'student_detail', 'archive'
+          const [selectedStudent, setSelectedStudent] = useState(null);
+          const [searchQuery, setSearchQuery] = useState('');
+          
+          // State for Announcement / Advertisement
+          const [announcement, setAnnouncement] = useState("📢 MAKLUMAN GURU DATA:\nSila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini. \n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.");
+          const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
+          const [tempAnnouncement, setTempAnnouncement] = useState("");
+          
+          // State for dynamic student list management
+          const [studentsList, setStudentsList] = useState(INITIAL_STUDENTS);
+          const [archivedStudents, setArchivedStudents] = useState([]);
+          
+          const [showAddModal, setShowAddModal] = useState(false);
+          const [showDropConfirm, setShowDropConfirm] = useState(false);
+          const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+          
+          // Add/Edit Student State
+          const [newStudent, setNewStudent] = useState({
+            nama: "", kelas: "", tahun: new Date().getFullYear(), darjah: "", guru: ""
+          });
+          
+          const [profileForm, setProfileForm] = useState({
+            nama: "", kelas: "", tahun: "", darjah: "", guru: ""
+          });
+          
+          // Drop Student State
+          const [dropReason, setDropReason] = useState('Pindah Sekolah');
+
+          // State to hold all student records
+          const [studentRecords, setStudentRecords] = useState({});
+          const [activeTab, setActiveTab] = useState('rekod'); 
+          
+          // State for uploaded documents & profile pictures
+          const [uploadedDocuments, setUploadedDocuments] = useState({});
+          const [profilePictures, setProfilePictures] = useState({});
+          
+          // Form state for editing record
+          const [formData, setFormData] = useState({...EMPTY_RECORD});
+          const [isEditing, setIsEditing] = useState(false);
+          const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+          
+          // State for document preview & alerts
+          const [previewDoc, setPreviewDoc] = useState(null);
+          const [studentToDelete, setStudentToDelete] = useState(null);
+          const [alertMessage, setAlertMessage] = useState('');
+
+          useEffect(() => {
+            const initAuth = async () => {
+              try {
+                if (typeof window.__initial_auth_token !== 'undefined') {
+                  await auth.signInWithCustomToken(window.__initial_auth_token);
+                } else {
+                  await auth.signInAnonymously();
+                }
+                setIsDbReady(true);
+              } catch (err) {
+                console.error("Firebase auth error:", err);
+              }
+            };
+            initAuth();
+          }, []);
+
+          useEffect(() => {
+            if (!isDbReady) return;
+
+            const getRef = (path) => db.collection(path);
+            
+            const studentsCol = `artifacts/${appId}/public/data/students`;
+            const archivedCol = `artifacts/${appId}/public/data/archived`;
+            const recordsCol = `artifacts/${appId}/public/data/records`;
+            const configDoc = db.doc(`artifacts/${appId}/public/data/config/app`);
+
+            const unsubStudents = getRef(studentsCol).onSnapshot((snap) => {
+              if (snap.empty && !window.seedDone) {
+                window.seedDone = true; 
+                INITIAL_STUDENTS.forEach(student => {
+                   getRef(studentsCol).doc(student.id).set(student);
+                });
+              } else if (!snap.empty) {
+                const loaded = snap.docs.map(d => d.data());
+                loaded.sort((a, b) => {
+                    if (a.darjah !== b.darjah) return String(a.darjah).localeCompare(String(b.darjah));
+                    if (a.kelas !== b.kelas) return a.kelas.localeCompare(b.kelas);
+                    return a.nama.localeCompare(b.nama);
+                });
+                setStudentsList(loaded);
+              }
+            }, (err) => console.error(err));
+
+            const unsubArchived = getRef(archivedCol).onSnapshot((snap) => {
+               const loaded = snap.docs.map(d => d.data());
+               loaded.sort((a, b) => a.nama.localeCompare(b.nama));
+               setArchivedStudents(loaded);
+            }, (err) => console.error(err));
+
+            const unsubRecords = getRef(recordsCol).onSnapshot((snap) => {
+               const recs = {};
+               snap.docs.forEach(d => { recs[d.id] = d.data(); });
+               setStudentRecords(recs);
+            }, (err) => console.error(err));
+
+            const unsubConfig = configDoc.onSnapshot((docSnap) => {
+               if (docSnap.exists && docSnap.data().announcement !== undefined) {
+                  setAnnouncement(docSnap.data().announcement);
+               } else {
+                  configDoc.set({ announcement: "📢 MAKLUMAN GURU DATA:\nSila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini. \n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih." });
+               }
+            }, (err) => console.error(err));
+
+            return () => {
+              unsubStudents();
+              unsubArchived();
+              unsubRecords();
+              unsubConfig();
+            };
+          }, [isDbReady]);
+
+          const filteredStudents = studentsList.filter(student => 
+            student.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            student.kelas.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+
+          const filteredArchived = archivedStudents.filter(student => 
+            student.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            student.kelas.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+
+          const handleAddStudent = async (e) => {
+            e.preventDefault();
+            const newId = "NEW_" + Date.now().toString(); 
+            const studentToAdd = {
+              ...newStudent,
+              id: newId,
+              nama: newStudent.nama.toUpperCase(),
+              kelas: newStudent.kelas.toUpperCase()
+            };
+            
+            if (isDbReady) {
+              await db.collection(`artifacts/${appId}/public/data/students`).doc(newId).set(studentToAdd);
+            }
+            
+            setShowAddModal(false);
+            setNewStudent({ nama: "", kelas: "", tahun: new Date().getFullYear(), darjah: "", guru: "" });
+          };
+
+          const openEditProfile = () => {
+            setProfileForm({
+              nama: selectedStudent.nama,
+              kelas: selectedStudent.kelas,
+              tahun: selectedStudent.tahun,
+              darjah: selectedStudent.darjah,
+              guru: selectedStudent.guru
+            });
+            setShowEditProfileModal(true);
+          };
+
+          const handleUpdateProfile = async (e) => {
+            e.preventDefault();
+            
+            const updatedProfile = {
+              ...profileForm,
+              nama: profileForm.nama.toUpperCase(),
+              kelas: profileForm.kelas.toUpperCase()
+            };
+            const newStudentData = { ...selectedStudent, ...updatedProfile };
+
+            if (isDbReady) {
+              if (archivedStudents.some(s => s.id === selectedStudent.id)) {
+                await db.collection(`artifacts/${appId}/public/data/archived`).doc(selectedStudent.id).set(newStudentData);
+              } else {
+                await db.collection(`artifacts/${appId}/public/data/students`).doc(selectedStudent.id).set(newStudentData);
+              }
+            }
+
+            setSelectedStudent(newStudentData);
+            setShowEditProfileModal(false);
+          };
+
+          const handleDropStudent = async (e) => {
+            e.preventDefault();
+            
+            const studentToArchive = {
+              ...selectedStudent,
+              sebabGugur: dropReason,
+              tarikhGugur: new Date().toLocaleDateString('ms-MY')
+            };
+
+            if (isDbReady) {
+              await db.collection(`artifacts/${appId}/public/data/archived`).doc(selectedStudent.id).set(studentToArchive);
+              await db.collection(`artifacts/${appId}/public/data/students`).doc(selectedStudent.id).delete();
+            }
+            
+            setShowDropConfirm(false);
+            setDropReason('Pindah Sekolah');
+            setCurrentView('list');
+            setSelectedStudent(null);
+          };
+
+          const handlePermanentDeleteClick = (e, studentId) => {
+            e.preventDefault();
+            e.stopPropagation(); 
+            
+            if (!ADMIN_DATA_ICS.includes(loginIC)) {
+              setAlertMessage("Akses Ditolak. Hanya Admin yang dibenarkan boleh memadam rekod secara kekal.");
+              return; 
+            }
+            
+            setStudentToDelete(studentId);
+          };
+
+          const executePermanentDelete = async () => {
+            if (!studentToDelete || !isDbReady) return;
+
+            await db.collection(`artifacts/${appId}/public/data/archived`).doc(studentToDelete).delete();
+            await db.collection(`artifacts/${appId}/public/data/records`).doc(studentToDelete).delete();
+            
+            setUploadedDocuments(prev => {
+              const updatedDocs = { ...prev };
+              delete updatedDocs[studentToDelete];
+              return updatedDocs;
+            });
+
+            setProfilePictures(prev => {
+              const updatedPics = { ...prev };
+              delete updatedPics[studentToDelete];
+              return updatedPics;
+            });
+
+            setStudentToDelete(null);
+            setAlertMessage("Rekod murid telah berjaya dipadam secara kekal dari sistem.");
+          };
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            if (AUTHORIZED_ICS.includes(loginIC)) {
+              setIsAuthenticated(true);
+              setLoginError('');
+            } else {
+              setLoginError('No. Kad Pengenalan tidak sah. Sila cuba lagi.');
+            }
+          };
+
+          const handleLogout = () => {
+            setIsAuthenticated(false);
+            setLoginIC('');
+            setCurrentView('list');
+            setSelectedStudent(null);
+          };
+
+          const openStudentDetail = (student) => {
+            setSelectedStudent(student);
+            if (!studentRecords[student.id]) {
+              setFormData({ ...EMPTY_RECORD, nama: student.nama });
+            } else {
+              setFormData({ ...studentRecords[student.id] });
+            }
+            setCurrentView('student_detail');
+            setActiveTab('rekod');
+            setIsEditing(false);
+          };
+
+          const handleBackToList = () => {
+            if (selectedStudent && archivedStudents.some(s => s.id === selectedStudent.id)) {
+              setCurrentView('archive');
+            } else {
+              setCurrentView('list');
+            }
+            setSelectedStudent(null);
+          };
+
+          const handleInputChange = (e, field) => {
+            setFormData({ ...formData, [field]: e.target.value });
+          };
+
+          const handleSaveRecord = async () => {
+            if (isDbReady) {
+               await db.collection(`artifacts/${appId}/public/data/records`).doc(selectedStudent.id).set(formData);
+            }
+            setIsEditing(false);
+          };
+
+          const handleDeleteRecord = async () => {
+            if (isDbReady) {
+               await db.collection(`artifacts/${appId}/public/data/records`).doc(selectedStudent.id).delete();
+            }
+            setFormData({ ...EMPTY_RECORD, nama: selectedStudent.nama });
+            setShowDeleteConfirm(false);
+            setIsEditing(false);
+          };
+
+          const handleFileUpload = (studentId, category, event) => {
+            const files = Array.from(event.target.files);
+            if (files.length > 0) {
+              const newDocs = files.map(file => ({
+                id: "doc_" + Date.now() + Math.random().toString(36).substr(2, 5),
+                name: file.name,
+                url: URL.createObjectURL(file),
+                type: file.type
+              }));
+
+              setUploadedDocuments(prev => {
+                const studentDocs = prev[studentId] || {};
+                const existingCategoryDocs = studentDocs[category] || [];
+                const normalizedExisting = Array.isArray(existingCategoryDocs) 
+                  ? existingCategoryDocs 
+                  : (existingCategoryDocs.url ? [existingCategoryDocs] : []);
+
+                return {
+                  ...prev,
+                  [studentId]: {
+                    ...studentDocs,
+                    [category]: [...normalizedExisting, ...newDocs]
+                  }
+                };
+              });
+            }
+          };
+
+          const handleFileDelete = (studentId, category, fileIdOrIndex) => {
+            setUploadedDocuments(prev => {
+              const studentDocs = prev[studentId] || {};
+              const existingCategoryDocs = studentDocs[category] || [];
+              const normalizedExisting = Array.isArray(existingCategoryDocs) 
+                  ? existingCategoryDocs 
+                  : (existingCategoryDocs.url ? [existingCategoryDocs] : []);
+
+              const updatedDocs = normalizedExisting.filter((doc, idx) => 
+                doc.id ? doc.id !== fileIdOrIndex : idx !== fileIdOrIndex
+              );
+
+              return { 
+                ...prev, 
+                [studentId]: { 
+                  ...studentDocs, 
+                  [category]: updatedDocs 
+                } 
+              };
+            });
+          };
+
+          const handlePrint = (doc) => {
+            if (doc.type.startsWith('image/')) {
+              const iframe = document.createElement('iframe');
+              iframe.style.position = 'fixed';
+              iframe.style.width = '0';
+              iframe.style.height = '0';
+              iframe.style.border = 'none';
+              document.body.appendChild(iframe);
+
+              iframe.contentWindow.document.open();
+              iframe.contentWindow.document.write(`
+                <html>
+                  <head><title>Cetak Gambar</title></head>
+                  <body style="margin:0; display:flex; justify-content:center; align-items:center;">
+                    <img id="img-to-print" src="${doc.url}" style="max-width:100%; max-height:100vh; object-fit:contain;" />
+                  </body>
+                </html>
+              `);
+              iframe.contentWindow.document.close();
+
+              const img = iframe.contentWindow.document.getElementById('img-to-print');
+              if (img) {
+                img.onload = () => {
+                  setTimeout(() => {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                    setTimeout(() => document.body.removeChild(iframe), 3000);
+                  }, 250);
+                };
+                img.onerror = () => {
+                  setAlertMessage("Ralat: Gagal memuatkan gambar untuk dicetak.");
+                  document.body.removeChild(iframe);
+                };
+              }
+            } else if (doc.type === 'application/pdf') {
+              const win = window.open(doc.url, '_blank');
+              if (win) win.focus();
+              else setAlertMessage("Sila benarkan 'Pop-ups' pada pelayar web anda untuk membuka dokumen cetakan.");
+            } else {
+              setAlertMessage("Format fail ini tidak menyokong cetakan langsung. Sila muat turun fail dan cetak menggunakan aplikasi di komputer anda.");
+            }
+          };
+
+          const handleProfilePicUpload = (studentId, event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const fileUrl = URL.createObjectURL(file);
+              setProfilePictures(prev => ({
+                ...prev,
+                [studentId]: { name: file.name, url: fileUrl, type: file.type }
+              }));
+            }
+          };
+
+          const handleProfilePicDelete = (studentId) => {
+            setProfilePictures(prev => {
+              const updated = { ...prev };
+              delete updated[studentId];
+              return updated;
+            });
+          };
+
+          const handleDownloadCSV = () => {
+            const headers = ["Bil", "Nama Murid", "Kelas", "No. Kad Pengenalan", "No. Kad OKU"];
+            
+            const csvData = studentsList.map((student, index) => {
+              const record = studentRecords[student.id] || {};
+              const noKP = record.noPendaftaran || ""; 
+              const noOKU = record.extra1 || ""; 
+              
+              return [
+                index + 1,
+                `"${student.nama}"`,
+                `"${student.kelas}"`,
+                `"${noKP}"`,
+                `"${noOKU}"`
+              ].join(",");
+            });
+            
+            const csvString = [headers.join(","), ...csvData].join("\n");
+            const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Senarai_Murid.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          };
+
+          const renderPreview = (doc) => {
+            if (!doc) return null;
+            
+            const isImage = doc.type.includes('image');
+            const isPDF = doc.type === 'application/pdf';
+            
+            return (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm">
+                <div className="bg-white rounded-xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden relative shadow-2xl">
+                  <div className="bg-gray-100 p-4 flex justify-between items-center border-b border-gray-200">
+                    <div className="flex items-center space-x-2 overflow-hidden">
+                      <Icon name="file-alt" className="text-xl text-gray-500 flex-shrink-0" />
+                      <h3 className="font-bold text-gray-800 truncate pr-4">{doc.name}</h3>
+                    </div>
+                    <button onClick={() => setPreviewDoc(null)} className="p-2 bg-gray-200 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors" title="Tutup Paparan">
+                      <Icon name="times" className="text-xl" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-auto bg-gray-100/50 flex items-center justify-center p-4 relative">
+                    {isImage ? (
+                      <img src={doc.url} alt={doc.name} className="max-w-full max-h-full object-contain rounded shadow-sm border border-gray-200 bg-white" />
+                    ) : isPDF ? (
+                      <iframe src={doc.url} className="w-full h-full border rounded bg-white shadow-sm" title={doc.name} />
+                    ) : (
+                      <div className="text-center text-gray-500 flex flex-col items-center">
+                        <div className="bg-gray-200 p-4 rounded-full mb-3">
+                          <Icon name="file-alt" className="text-5xl text-gray-400" />
+                        </div>
+                        <p className="font-medium text-gray-700">Format fail ini tidak menyokong paparan langsung.</p>
+                        <p className="text-sm mt-1 mb-4">Sila muat turun fail ini untuk melihat kandungannya.</p>
+                        <a href={doc.url} download={doc.name} className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm">
+                          <Icon name="download" className="text-base mr-2" /> Muat Turun Fail
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          if (!isAuthenticated) {
+            return (
+              <div 
+                className="min-h-screen flex flex-col justify-center items-center p-4 relative bg-cover bg-center bg-fixed"
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80')" }}
+              >
+                <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-sm"></div>
+                <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 relative z-10 border-t-4 border-blue-500">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-blue-600 p-4 rounded-full shadow-lg">
+                      <Icon name="lock" className="text-3xl text-white" />
+                    </div>
+                  </div>
+                  <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
+                    FAIL PERIBADI MURID
+                  </h1>
+                  <h2 className="text-sm font-bold text-center text-blue-700 mb-8">
+                    SK PENDIDIKAN KHAS MIRI
+                  </h2>
+                  
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        No. Kad Pengenalan Guru
+                      </label>
+                      <input
+                        type="text"
+                        value={loginIC}
+                        onChange={(e) => setLoginIC(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="Contoh: 810808135501"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        maxLength={12}
+                        required
+                      />
+                    </div>
+                    
+                    {loginError && (
+                      <div className="flex items-center text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                        <Icon name="exclamation-circle" className="text-base mr-2 flex-shrink-0" />
+                        {loginError}
+                      </div>
+                    )}
+                    
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center"
+                    >
+                      Log Masuk
+                    </button>
+                  </form>
+                  
+                  <div className="mt-8 text-xs text-center text-gray-500 font-medium">
+                    Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          if (currentView === 'archive') {
+            return (
+              <div className="min-h-screen flex flex-col relative bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80')" }}>
+                <div className="absolute inset-0 bg-slate-100/95 backdrop-blur-sm z-0"></div>
+
+                <header className="bg-red-800/95 backdrop-blur-md text-white shadow-lg p-4 sticky top-0 z-20 border-b border-red-700">
+                  <div className="max-w-4xl mx-auto flex justify-between items-center">
+                    <div className="flex items-center">
+                      <button onClick={() => setCurrentView('list')} className="mr-3 hover:bg-red-700 p-2 rounded-full transition-colors flex items-center justify-center w-10 h-10">
+                        <Icon name="chevron-left" className="text-2xl" />
+                      </button>
+                      <div>
+                        <h1 className="text-lg md:text-xl font-bold leading-tight drop-shadow-sm">ARKIB MURID (DIGUGURKAN)</h1>
+                        <p className="text-xs md:text-sm text-red-200 font-medium">SK PENDIDIKAN KHAS MIRI</p>
+                      </div>
+                    </div>
+                  </div>
+                </header>
+
+                <main className="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col gap-4 relative z-10">
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-start shadow-sm">
+                    <Icon name="shield-alt" className="text-xl text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-yellow-800 text-sm">Makluman Keselamatan</h4>
+                      <p className="text-yellow-700 text-xs mt-1">
+                        Senarai ini mengandungi rekod murid yang telah digugurkan (berpindah/naik tingkatan). Segala dokumen dan rekod disimpan sebagai rujukan. Klik baris murid untuk melihat rekod. Hanya <b>Guru Data</b> yang mempunyai akses untuk menghapus rekod ini secara kekal.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative shadow-sm rounded-xl">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Icon name="search" className="text-xl text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Cari dalam arkib..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-white/50 shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white/95 backdrop-blur-sm transition-all text-gray-800 font-medium outline-none"
+                    />
+                  </div>
+
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-sm border border-white overflow-hidden flex-1">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-sm">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b text-gray-700">
+                            <th className="p-4 font-semibold">Nama Murid</th>
+                            <th className="p-4 font-semibold">Sebab Gugur</th>
+                            <th className="p-4 font-semibold">Tarikh</th>
+                            <th className="p-4 font-semibold text-right">Tindakan</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredArchived.length > 0 ? (
+                            filteredArchived.map((student) => (
+                              <tr 
+                                key={student.id} 
+                                onClick={() => openStudentDetail(student)}
+                                className="hover:bg-red-50 cursor-pointer transition-colors group"
+                              >
+                                <td className="p-4">
+                                  <div className="font-medium text-gray-900 group-hover:text-red-700">{student.nama}</div>
+                                  <div className="text-xs text-gray-500 mt-1">{student.kelas}</div>
+                                </td>
+                                <td className="p-4 text-gray-600">
+                                  <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-200">
+                                    {student.sebabGugur}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-gray-600 whitespace-nowrap">{student.tarikhGugur}</td>
+                                <td className="p-4 text-right">
+                                  <div className="flex justify-end space-x-2">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openStudentDetail(student);
+                                      }}
+                                      className="px-3 py-1.5 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg transition-colors text-xs font-semibold relative z-10"
+                                      title="Lihat Rekod"
+                                    >
+                                      Lihat
+                                    </button>
+                                    {ADMIN_DATA_ICS.includes(loginIC) && (
+                                      <button 
+                                        onClick={(e) => handlePermanentDeleteClick(e, student.id)}
+                                        className="p-1.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition-colors inline-flex relative z-10 w-8 h-8 items-center justify-center"
+                                        title="Padam Kekal"
+                                      >
+                                        <Icon name="trash-alt" className="text-base" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="4" className="p-8 text-center text-gray-500">
+                                Tiada rekod arkib dijumpai.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </main>
+
+                {studentToDelete && (
+                  <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+                      <div className="bg-red-600 p-4 text-center text-white flex flex-col items-center">
+                        <Icon name="shield-alt" className="text-4xl mb-2" />
+                        <h3 className="text-lg font-bold">Amaran Keselamatan</h3>
+                      </div>
+                      <div className="p-6 text-center">
+                        <p className="text-gray-700 mb-6 font-medium">Adakah anda pasti mahu memadam rekod ini secara KEKAL? Tindakan ini tidak boleh dikembalikan.</p>
+                        <div className="flex space-x-3">
+                          <button onClick={() => setStudentToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                          <button onClick={executePermanentDelete} className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors shadow-md">Ya, Padam Kekal</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {alertMessage && (
+                  <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+                      <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                        <h3 className="font-bold text-lg">Makluman Sistem</h3>
+                        <button onClick={() => setAlertMessage('')} className="hover:bg-blue-700 p-1 rounded-full transition-colors w-7 h-7 flex items-center justify-center">
+                          <Icon name="times" className="text-base" />
+                        </button>
+                      </div>
+                      <div className="p-6 text-center">
+                        <p className="text-gray-700 font-medium mb-6">{alertMessage}</p>
+                        <button onClick={() => setAlertMessage('')} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md">Tutup</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (currentView === 'list') {
+            return (
+              <div 
+                className="min-h-screen flex flex-col relative bg-cover bg-center bg-fixed"
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80')" }}
+              >
+                <div className="absolute inset-0 bg-slate-100/90 backdrop-blur-sm z-0"></div>
+
+                <header className="bg-blue-800/95 backdrop-blur-md text-white shadow-lg p-4 sticky top-0 z-20 border-b border-blue-700">
+                  <div className="max-w-4xl mx-auto flex justify-between items-center">
+                    <div>
+                      <h1 className="text-lg md:text-xl font-bold leading-tight drop-shadow-sm">FAIL PERIBADI MURID</h1>
+                      <p className="text-xs md:text-sm text-blue-200 font-medium">SK PENDIDIKAN KHAS MIRI</p>
+                    </div>
+                    <button 
+                      onClick={handleLogout}
+                      className="p-2 hover:bg-blue-700 rounded-full transition-colors flex items-center text-sm border border-transparent hover:border-blue-500"
+                      title="Log Keluar"
+                    >
+                      <Icon name="sign-out-alt" className="text-xl md:mr-2" />
+                      <span className="hidden md:inline">Log Keluar</span>
+                    </button>
+                  </div>
+                </header>
+
+                <main className="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col gap-4 relative z-10">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 shadow-sm relative">
+                    <div className="flex items-start">
+                      <div className="bg-blue-100 p-2.5 rounded-lg mr-3 flex-shrink-0 mt-0.5 shadow-sm border border-blue-200">
+                        <Icon name="bullhorn" className="text-xl text-blue-700" />
+                      </div>
+                      <div className="flex-1 w-full">
+                        <div className="flex justify-between items-center mb-1">
+                          <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wide">Papan Makluman / Tindakan</h3>
+                          {ANNOUNCEMENT_ADMIN_ICS.includes(loginIC) && !isEditingAnnouncement && (
+                            <button 
+                              onClick={() => { setTempAnnouncement(announcement); setIsEditingAnnouncement(true); }} 
+                              className="text-blue-600 hover:text-white px-2 py-1.5 bg-blue-100 hover:bg-blue-600 rounded-lg transition-all border border-blue-200 hover:border-blue-600 flex items-center shadow-sm" 
+                              title="Kemaskini Makluman (Guru Data Sahaja)"
+                            >
+                              <Icon name="edit" className="text-sm mr-1" />
+                              <span className="text-xs font-semibold">Kemaskini</span>
+                            </button>
+                          )}
+                        </div>
+                        
+                        {isEditingAnnouncement ? (
+                          <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <textarea 
+                              value={tempAnnouncement}
+                              onChange={(e) => setTempAnnouncement(e.target.value)}
+                              className="w-full p-3 text-sm border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px] bg-white shadow-inner transition-all outline-none"
+                              placeholder="Masukkan makluman, peringatan atau tindakan di sini..."
+                            />
+                            <div className="flex justify-end space-x-2 mt-3">
+                              <button 
+                                onClick={() => setIsEditingAnnouncement(false)} 
+                                className="px-4 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-lg transition-colors shadow-sm"
+                              >
+                                Batal
+                              </button>
+                              <button 
+                                onClick={async () => { 
+                                  if (isDbReady) {
+                                     await db.collection(`artifacts/${appId}/public/data/config`).doc('app').set({ announcement: tempAnnouncement }, { merge: true });
+                                  }
+                                  setIsEditingAnnouncement(false); 
+                                }} 
+                                className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 border border-blue-700 hover:bg-blue-700 rounded-lg transition-colors flex items-center shadow-sm"
+                              >
+                                <Icon name="check" className="text-base mr-1.5" /> Simpan Makluman
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-1 text-sm text-blue-800 whitespace-pre-wrap font-medium leading-relaxed bg-white/50 p-3 rounded-lg border border-blue-100/50">
+                            {announcement || <span className="italic text-blue-400">Tiada makluman pada masa ini.</span>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative shadow-sm rounded-xl flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Icon name="search" className="text-xl text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Cari nama murid atau kelas..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/95 backdrop-blur-sm transition-all text-gray-800 font-medium outline-none"
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setShowAddModal(true)}
+                        className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-5 py-3.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 border border-blue-500"
+                      >
+                        <Icon name="user-plus" className="text-xl" />
+                        <span className="font-semibold">Tambah Murid</span>
+                      </button>
+
+                      <button 
+                        onClick={handleDownloadCSV}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-3.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 border border-green-500"
+                        title="Muat Turun Senarai Murid (CSV)"
+                      >
+                        <Icon name="download" className="text-xl" />
+                        <span className="hidden sm:inline font-semibold">Muat Turun</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setCurrentView('archive')}
+                        className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-3.5 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 border border-gray-600"
+                        title="Lihat Arkib (Murid Digugurkan)"
+                      >
+                        <Icon name="archive" className="text-xl" />
+                        <span className="hidden sm:inline font-semibold">Arkib</span>
+                        {archivedStudents.length > 0 && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full ml-1">
+                            {archivedStudents.length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-sm border border-white overflow-hidden flex-1">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-sm">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b text-gray-700">
+                            <th className="p-4 font-semibold">Nama Murid</th>
+                            <th className="p-4 font-semibold hidden md:table-cell">Kelas</th>
+                            <th className="p-4 font-semibold hidden lg:table-cell">Guru Kelas</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredStudents.length > 0 ? (
+                            filteredStudents.map((student) => (
+                              <tr 
+                                key={student.id} 
+                                onClick={() => openStudentDetail(student)}
+                                className="hover:bg-blue-50 cursor-pointer transition-colors group"
+                              >
+                                <td className="p-4">
+                                  <div className="font-medium text-gray-900 group-hover:text-blue-700">
+                                    {student.nama}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1 md:hidden">
+                                    {student.kelas} • Guru: {student.guru}
+                                  </div>
+                                </td>
+                                <td className="p-4 text-gray-600 hidden md:table-cell whitespace-nowrap">
+                                  {student.kelas}
+                                </td>
+                                <td className="p-4 text-gray-600 hidden lg:table-cell whitespace-nowrap">
+                                  {student.guru}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="3" className="p-8 text-center text-gray-500">
+                                Tiada rekod murid dijumpai.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </main>
+
+                {studentToDelete && (
+                  <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+                      <div className="bg-red-600 p-4 text-center text-white flex flex-col items-center">
+                        <Icon name="shield-alt" className="text-4xl mb-2" />
+                        <h3 className="text-lg font-bold">Amaran Keselamatan</h3>
+                      </div>
+                      <div className="p-6 text-center">
+                        <p className="text-gray-700 mb-6 font-medium">Adakah anda pasti mahu memadam rekod ini secara KEKAL? Tindakan ini tidak boleh dikembalikan.</p>
+                        <div className="flex space-x-3">
+                          <button onClick={() => setStudentToDelete(null)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                          <button onClick={executePermanentDelete} className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors shadow-md">Ya, Padam Kekal</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {alertMessage && (
+                  <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+                      <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                        <h3 className="font-bold text-lg">Makluman Sistem</h3>
+                        <button onClick={() => setAlertMessage('')} className="hover:bg-blue-700 p-1 rounded-full transition-colors w-7 h-7 flex items-center justify-center">
+                          <Icon name="times" className="text-base" />
+                        </button>
+                      </div>
+                      <div className="p-6 text-center">
+                        <p className="text-gray-700 font-medium mb-6">{alertMessage}</p>
+                        <button onClick={() => setAlertMessage('')} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md">Tutup</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {showAddModal && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                      <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                        <h3 className="font-bold text-lg flex items-center">
+                          <Icon name="user-plus" className="text-xl mr-2" /> Tambah Murid Baharu
+                        </h3>
+                        <button onClick={() => setShowAddModal(false)} className="hover:bg-blue-700 p-1 rounded-full transition-colors w-7 h-7 flex items-center justify-center">
+                          <Icon name="times" className="text-base" />
+                        </button>
+                      </div>
+                      <form onSubmit={handleAddStudent} className="p-6 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nama Penuh Murid</label>
+                          <input required type="text" value={newStudent.nama} onChange={e => setNewStudent({...newStudent, nama: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 uppercase outline-none" placeholder="CONTOH: AHMAD BIN ALI" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                            <input required type="text" value={newStudent.kelas} onChange={e => setNewStudent({...newStudent, kelas: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 uppercase outline-none" placeholder="CONTOH: 1BD" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Darjah / Tahun</label>
+                            <input required type="text" value={newStudent.darjah} onChange={e => setNewStudent({...newStudent, darjah: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="CONTOH: 1" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Kemasukan</label>
+                            <input required type="number" value={newStudent.tahun} onChange={e => setNewStudent({...newStudent, tahun: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Guru Kelas</label>
+                            <input type="text" value={newStudent.guru} onChange={e => setNewStudent({...newStudent, guru: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Opsional" />
+                          </div>
+                        </div>
+                        <div className="pt-4 flex space-x-3">
+                          <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                          <button type="submit" className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md">Simpan Murid</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          const formFields = [
+            { label: "1. Nama", key: "nama", type: "text" },
+            { label: "2. No. Pendaftaran", key: "noPendaftaran", type: "text" },
+            { label: "3. Tarikh Masuk Sekolah", key: "tarikhMasuk", type: "date" },
+            { label: "4. Jantina", key: "jantina", type: "select", options: ["Lelaki", "Perempuan"] },
+            { label: "5. Bangsa", key: "bangsa", type: "text" },
+            { label: "6. Asrama / Harian", key: "asramaHarian", type: "select", options: ["Asrama", "Harian"] },
+            { label: "7. Tarikh Lahir", key: "tarikhLahir", type: "date" },
+            { label: "8. Tempat Lahir", key: "tempatLahir", type: "text" },
+            { label: "9. Nama Bapa / Penjaga / Ibu", key: "namaBapa", type: "text" },
+            { label: "10. Pekerjaan Bapa / Ibu", key: "pekerjaanBapa", type: "text" },
+            { label: "11. Alamat", key: "alamat", type: "textarea" },
+            { label: "12. No. Kad Pengenalan Bapa / Ibu / Penjaga", key: "noKPBapa", type: "text" },
+            { label: "13. No. Telefon Rumah", key: "noTelRumah", type: "tel" },
+            { label: "14. No. Handphone Bapa / Penjaga / Ibu", key: "noHPPenjaga", type: "tel" },
+            { label: "15. Jawatan Khas Di Sekolah", key: "jawatanKhas", type: "text" },
+            { label: "16. (Lain-lain)", key: "extra1", type: "text" },
+          ];
+
+          const isStudentArchived = archivedStudents.some(s => s.id === selectedStudent?.id);
+
+          return (
+            <div 
+              className="min-h-screen flex flex-col pb-20 md:pb-0 relative bg-cover bg-center bg-fixed"
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80')" }}
+            >
+              <div className="absolute inset-0 bg-slate-100/90 backdrop-blur-sm z-0"></div>
+
+              <header className="bg-white/95 backdrop-blur-md shadow-sm border-b sticky top-0 z-20 px-4 py-3 flex items-center justify-between">
+                <button 
+                  onClick={handleBackToList}
+                  className="flex items-center justify-center text-gray-600 hover:text-blue-700 p-1 -ml-1 rounded transition-colors"
+                >
+                  <Icon name="chevron-left" className="text-2xl mr-1" />
+                  <span className="hidden sm:inline font-medium">Kembali</span>
+                </button>
+                <div className="flex-1 text-center truncate px-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <h2 className="font-bold text-gray-900 truncate">{selectedStudent?.nama}</h2>
+                    {isStudentArchived && (
+                      <span className="bg-red-100 text-red-800 border border-red-200 text-xs px-2 py-0.5 rounded-full font-bold flex-shrink-0">
+                        ARKIB
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 font-medium">
+                    {selectedStudent?.kelas} (Darjah {selectedStudent?.darjah}) • {selectedStudent?.tahun}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={openEditProfile}
+                    className="flex items-center justify-center text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 p-2 rounded-lg transition-colors border border-blue-100 w-9 h-9"
+                    title="Kemaskini Profil (Nama/Kelas/Darjah)"
+                  >
+                    <Icon name="edit" className="text-base" />
+                  </button>
+
+                  {!isStudentArchived && (
+                    <button 
+                      onClick={() => setShowDropConfirm(true)}
+                      className="flex items-center text-red-600 hover:text-white hover:bg-red-600 bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-red-100"
+                      title="Gugurkan Murid"
+                    >
+                      <Icon name="user-minus" className="text-base" />
+                      <span className="hidden sm:inline ml-2 text-sm font-semibold">Gugur</span>
+                    </button>
+                  )}
+                </div>
+              </header>
+
+              <div className="bg-white/95 backdrop-blur-md px-4 border-b flex justify-center space-x-4 relative z-10">
+                <button
+                  onClick={() => setActiveTab('rekod')}
+                  className={`py-3 px-4 font-medium text-sm flex items-center border-b-2 transition-colors ${
+                    activeTab === 'rekod' 
+                      ? 'border-blue-600 text-blue-600' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon name="user" className="text-base mr-2" />
+                  Rekod Peribadi
+                </button>
+                <button
+                  onClick={() => setActiveTab('kandungan')}
+                  className={`py-3 px-4 font-medium text-sm flex items-center border-b-2 transition-colors ${
+                    activeTab === 'kandungan' 
+                      ? 'border-blue-600 text-blue-600' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon name="folder-open" className="text-base mr-2" />
+                  Kandungan Fail
+                </button>
+              </div>
+
+              <main className="flex-1 max-w-3xl w-full mx-auto p-4 relative z-10">
+                {activeTab === 'rekod' && (
+                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-md border border-white overflow-hidden">
+                    <div className="bg-slate-50/80 p-4 border-b flex justify-between items-center">
+                      <h3 className="font-bold text-gray-800">REKOD PERIBADI MURID</h3>
+                      <div className="space-x-2">
+                        {!isEditing ? (
+                          <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-colors">
+                            Kemaskini
+                          </button>
+                        ) : (
+                          <div className="flex space-x-2">
+                            <button onClick={() => setIsEditing(false)} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">Batal</button>
+                            <button onClick={handleSaveRecord} className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                              <Icon name="save" className="text-base mr-1.5" /> Simpan
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center p-6 border-b border-gray-100 bg-white">
+                      <div className="relative group w-32 h-40 rounded-lg border-4 border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center mb-4 shadow-sm">
+                        {profilePictures[selectedStudent.id] ? (
+                          <img src={profilePictures[selectedStudent.id].url} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <Icon name="user" className="text-5xl text-gray-300" />
+                        )}
+                        
+                        {isEditing && (
+                          <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity z-10">
+                            <Icon name="upload" className="text-2xl mb-1" />
+                            <span className="text-xs font-semibold text-center leading-tight">Tukar<br/>Gambar</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleProfilePicUpload(selectedStudent.id, e)} />
+                          </label>
+                        )}
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        {profilePictures[selectedStudent.id] && (
+                          <a href={profilePictures[selectedStudent.id].url} download={profilePictures[selectedStudent.id].name} className="flex items-center text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full transition-colors border border-blue-200 shadow-sm font-medium">
+                            <Icon name="download" className="text-sm mr-1.5" /> Muat Turun
+                          </a>
+                        )}
+                        {isEditing && profilePictures[selectedStudent.id] && (
+                          <button onClick={() => handleProfilePicDelete(selectedStudent.id)} className="flex items-center text-xs text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-full transition-colors border border-red-200 shadow-sm font-medium">
+                            <Icon name="trash-alt" className="text-sm mr-1.5" /> Padam
+                          </button>
+                        )}
+                        {isEditing && !profilePictures[selectedStudent.id] && (
+                          <label className="flex items-center text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full transition-colors cursor-pointer border border-blue-200 shadow-sm font-medium">
+                            <Icon name="upload" className="text-base mr-1.5" /> Muat Naik Gambar Profil
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleProfilePicUpload(selectedStudent.id, e)} />
+                          </label>
+                        )}
+                      </div>
+                      {!isEditing && !profilePictures[selectedStudent.id] && (
+                        <span className="text-xs text-gray-400 italic">Tiada gambar profil</span>
+                      )}
+                    </div>
+
+                    <div className="p-0 sm:p-4">
+                      <div className="border border-gray-300 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-100 border-b border-gray-300">
+                              <th className="w-16 p-3 text-center border-r border-gray-300 text-gray-700 font-semibold">Bil</th>
+                              <th className="w-1/3 p-3 text-left border-r border-gray-300 text-gray-700 font-semibold">PERKARA</th>
+                              <th className="p-3 text-left text-gray-700 font-semibold">MAKLUMAT</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {formFields.map((field) => {
+                              const bil = field.label.split('.')[0];
+                              const labelText = field.label.substring(field.label.indexOf('.') + 1).trim();
+                              return (
+                                <tr key={field.key} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
+                                  <td className="p-3 text-center border-r border-gray-200 text-gray-500">{bil}</td>
+                                  <td className="p-3 font-medium text-gray-700 border-r border-gray-200 bg-gray-50/50">{labelText}</td>
+                                  <td className="p-0">
+                                    {isEditing ? (
+                                      field.type === 'textarea' ? (
+                                        <textarea value={formData[field.key]} onChange={(e) => handleInputChange(e, field.key)} className="w-full p-3 bg-white outline-none focus:bg-blue-50 resize-y min-h-[80px]" placeholder={`Masukkan ${labelText.toLowerCase()}...`} />
+                                      ) : field.type === 'select' ? (
+                                        <select value={formData[field.key]} onChange={(e) => handleInputChange(e, field.key)} className="w-full p-3 bg-white outline-none focus:bg-blue-50">
+                                          <option value="">-- Sila Pilih --</option>
+                                          {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select>
+                                      ) : (
+                                        <input type={field.type} value={formData[field.key]} onChange={(e) => handleInputChange(e, field.key)} className="w-full p-3 bg-white outline-none focus:bg-blue-50" placeholder={`Masukkan ${labelText.toLowerCase()}...`} />
+                                      )
+                                    ) : (
+                                      <div className="p-3 min-h-[44px] text-gray-800">
+                                        {formData[field.key] || <span className="text-gray-400 italic">Tiada maklumat</span>}
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {isEditing && (
+                        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+                          {!showDeleteConfirm ? (
+                            <button onClick={() => setShowDeleteConfirm(true)} className="flex items-center text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                              Kosongkan Rekod Semasa
+                            </button>
+                          ) : (
+                            <div className="flex items-center space-x-3 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                              <span className="text-sm text-orange-800 font-medium">Pasti mahu kosongkan isi borang?</span>
+                              <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1 bg-white text-gray-600 rounded border text-sm hover:bg-gray-50">Batal</button>
+                              <button onClick={handleDeleteRecord} className="px-3 py-1 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700">Ya, Kosongkan</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'kandungan' && (
+                  <div className="space-y-4">
+                    <div className="bg-yellow-50/95 backdrop-blur-sm border border-yellow-300 p-4 rounded-xl flex items-start mb-6 shadow-sm">
+                      <Icon name="lock" className="text-xl text-yellow-600 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-yellow-800 text-sm">Dokumen Sulit</h4>
+                        <p className="text-yellow-700 text-xs mt-1">Kandungan di bawah adalah sulit dan disulitkan untuk akses pengguna yang sah sahaja. Anda boleh muat naik berbilang dokumen bagi setiap kategori.</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {DOCUMENT_CATEGORIES.map((doc, idx) => {
+                        const rawDocData = uploadedDocuments[selectedStudent?.id]?.[doc];
+                        const docList = Array.isArray(rawDocData) 
+                          ? rawDocData 
+                          : (rawDocData?.url ? [rawDocData] : []);
+
+                        return (
+                          <div key={idx} className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-200 transition-all flex flex-col group hover:border-blue-300">
+                            <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-3">
+                              <div className="flex items-center flex-1 pr-2">
+                                <Icon name="folder-open" className="text-xl text-blue-500 mr-2 flex-shrink-0" />
+                                <h4 className="font-bold text-gray-800 text-xs sm:text-sm truncate" title={doc}>{doc}</h4>
+                              </div>
+                              <label className="p-1.5 px-3 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 rounded-lg transition-colors flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm" title="Muat Naik Fail">
+                                <Icon name="upload" className="text-sm mr-1.5" /> 
+                                <span className="text-xs font-semibold">Muat Naik</span>
+                                <input type="file" multiple className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => handleFileUpload(selectedStudent.id, doc, e)} />
+                              </label>
+                            </div>
+                            
+                            <div className="space-y-2 flex-1">
+                              {docList.length > 0 ? (
+                                docList.map((file, fileIdx) => (
+                                  <div key={file.id || fileIdx} className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors">
+                                    <div className="flex items-center flex-1 min-w-0 mr-3">
+                                      <Icon name="file-contract" className="text-base text-green-600 mr-2 flex-shrink-0" />
+                                      <p className="text-xs font-medium text-gray-700 truncate" title={file.name}>{file.name}</p>
+                                    </div>
+                                    <div className="flex space-x-1.5 flex-shrink-0">
+                                      <button onClick={() => setPreviewDoc({ url: file.url, type: file.type, name: file.name })} className="p-1.5 w-7 h-7 flex items-center justify-center bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white border border-purple-200 rounded-md transition-colors" title="Papar Dokumen">
+                                        <Icon name="eye" className="text-sm" />
+                                      </button>
+                                      <button onClick={() => handlePrint(file)} className="p-1.5 w-7 h-7 flex items-center justify-center bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white border border-orange-200 rounded-md transition-colors" title="Cetak Dokumen">
+                                        <Icon name="print" className="text-sm" />
+                                      </button>
+                                      <a href={file.url} download={file.name} className="p-1.5 w-7 h-7 flex items-center justify-center bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 rounded-md transition-colors" title="Muat Turun">
+                                        <Icon name="download" className="text-sm" />
+                                      </a>
+                                      <button onClick={() => handleFileDelete(selectedStudent.id, doc, file.id || fileIdx)} className="p-1.5 w-7 h-7 flex items-center justify-center bg-red-50 text-red-700 hover:bg-red-600 hover:text-white border border-red-200 rounded-md transition-colors" title="Padam">
+                                        <Icon name="trash-alt" className="text-sm" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="flex flex-col items-center justify-center py-5 text-gray-400 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                                  <Icon name="file-alt" className="text-2xl mb-1 opacity-40" />
+                                  <span className="text-[11px] font-medium">Tiada dokumen dimuat naik</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </main>
+
+              {showEditProfileModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                  <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+                    <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                      <h3 className="font-bold text-lg flex items-center">
+                        <Icon name="edit" className="text-xl mr-2" /> Kemaskini Profil Asas
+                      </h3>
+                      <button onClick={() => setShowEditProfileModal(false)} className="hover:bg-blue-700 p-1 rounded-full transition-colors w-7 h-7 flex items-center justify-center">
+                        <Icon name="times" className="text-base" />
+                      </button>
+                    </div>
+                    <form onSubmit={handleUpdateProfile} className="p-6 space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nama Penuh Murid</label>
+                        <input required type="text" value={profileForm.nama} onChange={e => setProfileForm({...profileForm, nama: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 uppercase outline-none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Kelas Semasa</label>
+                          <input required type="text" value={profileForm.kelas} onChange={e => setProfileForm({...profileForm, kelas: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 uppercase outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Darjah / Tahun</label>
+                          <input required type="text" value={profileForm.darjah} onChange={e => setProfileForm({...profileForm, darjah: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Kemasukan</label>
+                          <input required type="number" value={profileForm.tahun} onChange={e => setProfileForm({...profileForm, tahun: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nama Guru Kelas</label>
+                          <input type="text" value={profileForm.guru} onChange={e => setProfileForm({...profileForm, guru: e.target.value})} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                      </div>
+                      <div className="pt-4 flex space-x-3">
+                        <button type="button" onClick={() => setShowEditProfileModal(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                        <button type="submit" className="flex-1 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md">Sahkan & Simpan</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {showDropConfirm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                  <form onSubmit={handleDropStudent} className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+                    <div className="bg-red-600 p-4 text-center">
+                      <Icon name="user-minus" className="text-4xl text-white mx-auto mb-2" />
+                      <h3 className="text-lg font-bold text-white">Gugurkan Murid?</h3>
+                    </div>
+                    
+                    <div className="p-6">
+                      <p className="text-sm text-gray-600 mb-4 text-center">
+                        Memindahkan <span className="font-bold text-gray-900">{selectedStudent?.nama}</span> ke dalam Arkib. Sila nyatakan sebab pengguguran:
+                      </p>
+                      
+                      <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Sebab Gugur</label>
+                        <select 
+                          value={dropReason}
+                          onChange={(e) => setDropReason(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 bg-gray-50 outline-none"
+                          required
+                        >
+                          <option value="Pindah Sekolah">Pindah Sekolah</option>
+                          <option value="Naik Tingkatan">Naik Tingkatan</option>
+                          <option value="Berhenti Sekolah">Berhenti Sekolah</option>
+                        </select>
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button type="button" onClick={() => setShowDropConfirm(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Batal</button>
+                        <button type="submit" className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors shadow-md">Sahkan & Gugur</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {previewDoc && renderPreview(previewDoc)}
+
+            </div>
+          );
+        };
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
