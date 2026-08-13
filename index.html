@@ -24,6 +24,14 @@
             padding: 0;
             background-color: #f3f4f6;
         }
+        /* Scrollbar untuk modal/popup */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -63,103 +71,80 @@
         const { useState, useEffect } = React;
 
         function App() {
+            // State Log Masuk
             const [isAuthenticated, setIsAuthenticated] = useState(false);
             const [icNumber, setIcNumber] = useState('');
             const [error, setError] = useState('');
             const [loading, setLoading] = useState(true);
             
-            // State untuk menyimpan data murid dari CSV
+            // State Data
             const [students, setStudents] = useState([]);
-
-            // Senarai IC kekal
             const [authorizedIcs, setAuthorizedIcs] = useState([
-                '810808135501', 
-                '910110136471', 
-                '880927135284', 
-                '920422135813', 
-                '970226135344',
-                'admin123'
+                '810808135501', '910110136471', '880927135284', '920422135813', '970226135344', 'admin123'
             ]);
 
+            // State Fungsi Interaktif
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedStudent, setSelectedStudent] = useState(null);
+            const [showAddModal, setShowAddModal] = useState(false);
+            
+            // State untuk Papan Makluman
+            const [isEditingNotice, setIsEditingNotice] = useState(false);
+            const [noticeText, setNoticeText] = useState("Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.\n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.");
+            const [tempNotice, setTempNotice] = useState("");
+
+            // State untuk borang tambah murid
+            const [newStudent, setNewStudent] = useState({ name: '', kelas: '' });
+
             useEffect(() => {
-                // Tarik CSV Google Sheets untuk IC dan Nama Pelajar
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv";
                 
                 fetch(fetchCsvUrl)
                     .then(response => response.text())
                     .then(csvText => {
-                        // 1. Ekstrak senarai IC yang sah
                         const textTanpaSengkang = csvText.replace(/-/g, '');
                         const icDariCsv = textTanpaSengkang.match(/\b\d{12}\b/g) || [];
-                        setAuthorizedIcs(prevIcs => {
-                            const gabungan = [...prevIcs, ...icDariCsv];
-                            return [...new Set(gabungan)];
-                        });
+                        setAuthorizedIcs(prevIcs => [...new Set([...prevIcs, ...icDariCsv])]);
 
-                        // 2. Ekstrak senarai Nama dan Kelas untuk jadual
                         const rows = csvText.split('\n').filter(row => row.trim() !== '');
                         if (rows.length > 0) {
                             const headers = rows[0].split(',').map(h => h.trim().toUpperCase());
                             
-                            let nameCol = -1;
-                            let classCol = -1;
-                            
-                            // Cari lajur berdasarkan tajuk header
+                            let nameCol = -1; let classCol = -1;
                             for (let i = 0; i < headers.length; i++) {
                                 if (headers[i].includes('NAMA') || headers[i].includes('MURID')) nameCol = i;
-                                else if (headers[i].includes('KELAS') || headers[i].includes('TAHUN') || headers[i].includes('TINGKATAN') || headers[i].includes('PROGRAM')) classCol = i;
+                                else if (headers[i].includes('KELAS') || headers[i].includes('TAHUN') || headers[i].includes('TINGKATAN')) classCol = i;
                             }
 
-                            // Fungsi pisah CSV yang mengendalikan pembuka kata ("") dengan selamat
                             const parseCSVRow = (row) => {
-                                const arr = [];
-                                let inQuote = false;
-                                let val = '';
+                                const arr = []; let inQuote = false; let val = '';
                                 for (let char of row) {
                                     if (char === '"') inQuote = !inQuote;
                                     else if (char === ',' && !inQuote) { arr.push(val.trim()); val = ''; }
                                     else val += char;
                                 }
-                                arr.push(val.trim());
-                                return arr;
+                                arr.push(val.trim()); return arr;
                             };
 
-                            // Jika tajuk tidak dijumpai, gunakan logik tekaan pada baris pertama data
                             if (rows.length > 1 && (nameCol === -1 || classCol === -1)) {
                                 const firstDataRow = parseCSVRow(rows[1]);
-                                
                                 for (let i = 0; i < firstDataRow.length; i++) {
                                     let val = firstDataRow[i].replace(/"/g, '');
-                                    if (!val || val === '') continue;
-                                    
-                                    // Abaikan jika ia adalah IC atau nombor tulen
-                                    if (/^[\d-]+$/.test(val)) continue;
-                                    
-                                    // Jika teks agak panjang, anggap sebagai Nama Murid
-                                    if (nameCol === -1 && val.length > 10) {
-                                        nameCol = i;
-                                    }
-                                    // Jika teks pendek, anggap sebagai Kelas (Contoh: "1BD")
-                                    else if (classCol === -1 && val.length > 0 && val.length <= 15 && i !== nameCol) {
-                                        classCol = i;
-                                    }
+                                    if (!val || val === '' || /^[\d-]+$/.test(val)) continue;
+                                    if (nameCol === -1 && val.length > 10) nameCol = i;
+                                    else if (classCol === -1 && val.length > 0 && val.length <= 15 && i !== nameCol) classCol = i;
                                 }
                             }
                             
-                            // Fallback keselamatan terakhir
                             if (nameCol === -1) nameCol = 0;
                             if (classCol === -1) classCol = (nameCol === 0) ? 1 : 0;
 
                             const parsedStudents = [];
-                            
-                            // Mula membaca dari baris ke-2 (mengabaikan tajuk header)
                             for (let i = 1; i < rows.length; i++) {
                                 const arr = parseCSVRow(rows[i]);
-                                
                                 const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '';
                                 const kelasMurid = arr[classCol] ? arr[classCol].replace(/"/g, '') : '-';
                                 
-                                // Hanya simpan jika terdapat rekod nama yang sah dan bukan nombor (contohnya terambil IC)
                                 if (namaMurid && namaMurid !== '-' && isNaN(namaMurid)) {
                                     parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
                                 }
@@ -191,81 +176,84 @@
             const handleLogin = (e) => {
                 e.preventDefault();
                 const cleanInput = icNumber.replace(/-/g, '');
-
                 if (authorizedIcs.includes(cleanInput)) {
-                    setIsAuthenticated(true);
-                    setError('');
+                    setIsAuthenticated(true); setError('');
                 } else {
                     setError('Nombor Kad Pengenalan tidak sah atau tiada dalam rekod.');
                 }
             };
 
+            // FUNGSI BUTANG: Muat Turun
+            const handleDownload = () => {
+                const csvContent = "data:text/csv;charset=utf-8,Nama Murid,Kelas\n" + 
+                                   students.map(e => `"${e.name}","${e.kelas}"`).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "Senarai_Murid.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // FUNGSI BUTANG: Arkib
+            const handleArchive = () => {
+                alert("Fungsi Arkib sedang diselenggara.");
+            };
+
+            // FUNGSI BUTANG: Tambah Murid (Simpan Sementara)
+            const submitNewStudent = (e) => {
+                e.preventDefault();
+                if(newStudent.name.trim() !== '') {
+                    setStudents([{ name: newStudent.name.toUpperCase(), kelas: newStudent.kelas.toUpperCase() }, ...students]);
+                    setNewStudent({ name: '', kelas: '' });
+                    setShowAddModal(false);
+                }
+            };
+
+            // FUNGSI CARIAN
+            const filteredStudents = students.filter(student => 
+                student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                student.kelas.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
             if (loading) {
                 return (
                     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                        <div className="text-xl font-semibold text-gray-600">Memuatkan Sistem...</div>
+                        <div className="text-xl font-semibold text-gray-600">
+                            <i className="fas fa-spinner fa-spin mr-3 text-blue-600"></i> Memuatkan Sistem...
+                        </div>
                     </div>
                 );
             }
 
-            // --- SKRIN LOG MASUK ---
             if (!isAuthenticated) {
                 return (
-                    <div 
-                        className="min-h-screen flex items-center justify-center px-4" 
-                        style={{ 
-                            backgroundImage: "url('sekolah.png')", 
-                            backgroundSize: 'cover', 
-                            backgroundPosition: 'center', 
-                            backgroundAttachment: 'fixed',
-                            backgroundColor: 'rgba(255, 255, 255, 0.7)', 
-                            backgroundBlendMode: 'overlay' 
-                        }}
-                    >
+                    <div className="min-h-screen flex items-center justify-center px-4" 
+                         style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(255, 255, 255, 0.7)', backgroundBlendMode: 'overlay' }}>
                         <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
                             <div className="text-center mb-8">
                                 <div className="flex justify-center mb-4">
-                                    <img 
-                                        src="logo.png" 
-                                        alt="Logo Sekolah" 
-                                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg bg-gray-50"
-                                        onError={(e) => {
-                                            e.target.onerror = null; 
-                                            e.target.src = "https://via.placeholder.com/150?text=Logo";
-                                        }}
-                                    />
+                                    <img src="logo.png" alt="Logo Sekolah" className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg bg-gray-50" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Logo"; }} />
                                 </div>
                                 <h1 className="text-2xl font-bold text-gray-800">Fail Peribadi Murid</h1>
                                 <p className="text-gray-500 mt-2">Sila log masuk untuk mengakses rekod</p>
                             </div>
-
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nombor Kad Pengenalan
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombor Kad Pengenalan</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <i className="fas fa-id-card text-gray-400"></i>
                                         </div>
-                                        <input
-                                            type="text"
-                                            value={icNumber}
-                                            onChange={(e) => setIcNumber(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            placeholder="Contoh: 010203145678"
-                                            required
-                                        />
+                                        <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Contoh: 010203145678" required />
                                     </div>
                                 </div>
-
                                 {error && (
                                     <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg flex items-center">
-                                        <i className="fas fa-exclamation-circle mr-2"></i>
-                                        {error}
+                                        <i className="fas fa-exclamation-circle mr-2"></i>{error}
                                     </div>
                                 )}
-
                                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center">
                                     Log Masuk <i className="fas fa-arrow-right ml-2"></i>
                                 </button>
@@ -275,42 +263,25 @@
                 );
             }
 
-            // --- SKRIN UTAMA / DASHBOARD ---
             return (
-                <div 
-                    className="min-h-screen"
-                    style={{ 
-                        backgroundImage: "url('sekolah.png')", 
-                        backgroundSize: 'cover', 
-                        backgroundPosition: 'center', 
-                        backgroundAttachment: 'fixed',
-                        backgroundColor: 'rgba(243, 244, 246, 0.9)', 
-                        backgroundBlendMode: 'overlay'
-                    }}
-                >
+                <div className="min-h-screen relative" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(243, 244, 246, 0.9)', backgroundBlendMode: 'overlay' }}>
+                    
                     {/* Header Banner */}
-                    <nav className="bg-[#2a459b] shadow-md">
+                    <nav className="bg-[#2a459b] shadow-md relative z-10">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide uppercase">Fail Peribadi Murid</h1>
                                     <p className="text-blue-100 text-sm mt-1 uppercase">SK Pendidikan Khas Miri</p>
                                 </div>
-                                <button 
-                                    onClick={() => {
-                                        setIsAuthenticated(false);
-                                        setIcNumber('');
-                                    }}
-                                    className="text-white hover:text-blue-200 font-medium px-4 py-2 transition-colors flex items-center"
-                                >
+                                <button onClick={() => { setIsAuthenticated(false); setIcNumber(''); }} className="text-white hover:text-blue-200 font-medium px-4 py-2 transition-colors flex items-center">
                                     <i className="fas fa-sign-out-alt mr-2"></i> Log Keluar
                                 </button>
                             </div>
                         </div>
                     </nav>
 
-                    {/* Kandungan Utama */}
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20 relative z-10">
                         
                         {/* Seksyen Makluman */}
                         <div className="bg-[#f0f4ff] rounded-xl border border-blue-200 p-5 mb-6 shadow-sm">
@@ -321,8 +292,12 @@
                                     </div>
                                     <h2 className="text-[#1a3673] font-bold text-lg">PAPAN MAKLUMAN / TINDAKAN</h2>
                                 </div>
-                                <button className="bg-[#dfe6ff] text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center">
-                                    <i className="fas fa-edit mr-2"></i> Kemaskini
+                                <button 
+                                    onClick={() => { setTempNotice(noticeText); setIsEditingNotice(!isEditingNotice); }}
+                                    className="bg-[#dfe6ff] text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center"
+                                >
+                                    <i className={isEditingNotice ? "fas fa-times mr-2" : "fas fa-edit mr-2"}></i> 
+                                    {isEditingNotice ? "Batal" : "Kemaskini"}
                                 </button>
                             </div>
                             
@@ -331,32 +306,57 @@
                                     <span className="text-pink-600 mr-2"><i className="fas fa-bullhorn"></i></span> 
                                     MAKLUMAN GURU DATA:
                                 </h3>
-                                <p className="text-[#1a3673] font-medium leading-relaxed mb-4">
-                                    Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.
-                                </p>
-                                <p className="text-[#1a3673] font-medium">
-                                    Sila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.
-                                </p>
+                                
+                                {/* Fungsi Edit Teks Makluman */}
+                                {isEditingNotice ? (
+                                    <div className="mt-3">
+                                        <textarea 
+                                            className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none custom-scrollbar"
+                                            rows="4"
+                                            value={tempNotice}
+                                            onChange={(e) => setTempNotice(e.target.value)}
+                                        ></textarea>
+                                        <div className="mt-3 flex justify-end">
+                                            <button 
+                                                onClick={() => { setNoticeText(tempNotice); setIsEditingNotice(false); }}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-colors"
+                                            >
+                                                Simpan Makluman
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-[#1a3673] font-medium leading-relaxed whitespace-pre-wrap">
+                                        {noticeText}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* Bar Carian & Butang Tindakan */}
                         <div className="flex flex-col md:flex-row gap-4 mb-6">
                             <div className="flex-grow">
-                                <input 
-                                    type="text" 
-                                    placeholder="Cari nama murid atau kelas..." 
-                                    className="w-full h-12 px-5 rounded-lg border-none shadow-sm focus:ring-2 focus:ring-blue-500 text-gray-700"
-                                />
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i className="fas fa-search text-gray-400"></i>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Cari nama murid atau kelas..." 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full h-12 pl-11 pr-5 rounded-lg border-none shadow-sm focus:ring-2 focus:ring-blue-500 text-gray-700"
+                                    />
+                                </div>
                             </div>
                             <div className="flex gap-3">
-                                <button className="bg-[#2563eb] hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
+                                <button onClick={() => setShowAddModal(true)} className="bg-[#2563eb] hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
                                     <i className="fas fa-user-plus mr-2"></i> Tambah Murid
                                 </button>
-                                <button className="bg-[#16a34a] hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
+                                <button onClick={handleDownload} className="bg-[#16a34a] hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
                                     <i className="fas fa-download mr-2"></i> Muat Turun
                                 </button>
-                                <button className="bg-[#374151] hover:bg-gray-800 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
+                                <button onClick={handleArchive} className="bg-[#374151] hover:bg-gray-800 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center">
                                     <i className="fas fa-archive mr-2"></i> Arkib
                                 </button>
                             </div>
@@ -372,9 +372,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {students.length > 0 ? (
-                                        students.map((student, index) => (
-                                            <tr key={index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                    {filteredStudents.length > 0 ? (
+                                        filteredStudents.map((student, index) => (
+                                            <tr 
+                                                key={index} 
+                                                onClick={() => setSelectedStudent(student)}
+                                                className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors"
+                                            >
                                                 <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
                                                 <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
                                             </tr>
@@ -382,15 +386,97 @@
                                     ) : (
                                         <tr>
                                             <td colSpan="2" className="py-8 px-6 text-center text-gray-500">
-                                                <i className="fas fa-spinner fa-spin mr-2"></i> Sedang memuatkan senarai nama atau tiada rekod dijumpai...
+                                                {searchTerm ? (
+                                                    <span><i className="fas fa-search-minus mr-2"></i> Tiada padanan dijumpai untuk "{searchTerm}"</span>
+                                                ) : (
+                                                    <span><i className="fas fa-spinner fa-spin mr-2"></i> Sedang memuatkan senarai nama atau tiada rekod...</span>
+                                                )}
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
-
                     </div>
+
+                    {/* MODAL: Papar Maklumat Murid */}
+                    {selectedStudent && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+                                <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                                    <h3 className="font-bold text-lg"><i className="fas fa-user-graduate mr-2"></i> Profil Murid</h3>
+                                    <button onClick={() => setSelectedStudent(null)} className="text-white hover:text-blue-200">
+                                        <i className="fas fa-times text-xl"></i>
+                                    </button>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <div>
+                                        <label className="text-sm text-gray-500 font-medium">Nama Penuh</label>
+                                        <div className="text-lg font-bold text-gray-800 uppercase">{selectedStudent.name}</div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm text-gray-500 font-medium">Kelas</label>
+                                            <div className="text-md font-semibold text-gray-700 uppercase">{selectedStudent.kelas}</div>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm text-gray-500 font-medium">Status Rekod</label>
+                                            <div className="text-md font-semibold text-green-600"><i className="fas fa-check-circle mr-1"></i> Aktif</div>
+                                        </div>
+                                    </div>
+                                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-4">
+                                        <button className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-200 transition-colors">
+                                            <i className="fas fa-folder-open mr-2"></i> Buka Fail Peribadi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MODAL: Tambah Murid */}
+                    {showAddModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+                                <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                                    <h3 className="font-bold text-lg"><i className="fas fa-user-plus mr-2"></i> Tambah Murid Baharu</h3>
+                                    <button onClick={() => setShowAddModal(false)} className="text-white hover:text-blue-200">
+                                        <i className="fas fa-times text-xl"></i>
+                                    </button>
+                                </div>
+                                <form onSubmit={submitNewStudent} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nama Penuh Murid</label>
+                                        <input 
+                                            type="text" required
+                                            value={newStudent.name} 
+                                            onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+                                            placeholder="Contoh: AHMAD BIN ABU"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                                        <input 
+                                            type="text" required
+                                            value={newStudent.kelas} 
+                                            onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+                                            placeholder="Contoh: 1BD"
+                                        />
+                                    </div>
+                                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-4">
+                                        <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                                            Batal
+                                        </button>
+                                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                            Simpan Rekod
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
