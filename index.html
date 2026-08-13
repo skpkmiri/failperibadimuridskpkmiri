@@ -115,7 +115,7 @@
                 "SALINAN KAD OKU"
             ];
 
-            // Template Rekod Peribadi Murid merujuk Gambar 223.jpeg
+            // Template Rekod Peribadi Murid (Baris 16-21 Dibuang)
             const senaraiPerkara = [
                 { id: 'name', label: 'Nama' },
                 { id: 'noPendaftaran', label: 'No. Pendaftaran' },
@@ -131,13 +131,7 @@
                 { id: 'icWaris', label: 'No. Kad Pengenalan Bapa / Ibu / Penjaga' },
                 { id: 'telRumah', label: 'No. Telefon Rumah' },
                 { id: 'hpWaris', label: 'No. Handphone Bapa / Penjaga / Ibu' },
-                { id: 'jawatanKhas', label: 'Jawatan Khas Di Sekolah' },
-                { id: 'kosong16', label: '' },
-                { id: 'kosong17', label: '' },
-                { id: 'kosong18', label: '' },
-                { id: 'kosong19', label: '' },
-                { id: 'kosong20', label: '' },
-                { id: 'kosong21', label: '' }
+                { id: 'jawatanKhas', label: 'Jawatan Khas Di Sekolah' }
             ];
 
             useEffect(() => {
@@ -176,7 +170,7 @@
                                             noPendaftaran: '', tarikhMasuk: '', jantina: '', bangsa: '', 
                                             asramaHarian: '', tarikhLahir: '', tempatLahir: '', namaWaris: '', 
                                             pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
-                                            hpWaris: '', jawatanKhas: ''
+                                            hpWaris: '', jawatanKhas: '', profilePic: null
                                         });
                                     }
                                 }
@@ -186,7 +180,7 @@
                     })
                     .catch(err => console.error("Ralat memuat turun data CSV:", err));
 
-                // 2. Sambungan Firebase berserta Error Handling
+                // 2. Sambungan Firebase
                 const fallbackTimer = setTimeout(() => {
                     setLoading(false);
                 }, 3000);
@@ -245,7 +239,7 @@
                         noPendaftaran: '', tarikhMasuk: '', jantina: '', bangsa: '', 
                         asramaHarian: '', tarikhLahir: '', tempatLahir: '', namaWaris: '', 
                         pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
-                        hpWaris: '', jawatanKhas: ''
+                        hpWaris: '', jawatanKhas: '', profilePic: null
                     }, ...students]);
                     setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
@@ -273,9 +267,39 @@
             };
 
             const openEditModal = () => {
-                // Salin semua data semasa pelajar ke dalam form
                 setEditForm({ ...viewingFile });
                 setShowEditModal(true);
+            };
+
+            // FUNGSI UPLOAD GAMBAR PASPORT
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const updatedList = students.map(s => {
+                            if (s.name === viewingFile.name) {
+                                return { ...s, profilePic: reader.result };
+                            }
+                            return s;
+                        });
+                        setStudents(updatedList);
+                        setViewingFile({ ...viewingFile, profilePic: reader.result });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            // FUNGSI PADAM GAMBAR PASPORT
+            const handleDeleteImage = () => {
+                const updatedList = students.map(s => {
+                    if (s.name === viewingFile.name) {
+                        return { ...s, profilePic: null };
+                    }
+                    return s;
+                });
+                setStudents(updatedList);
+                setViewingFile({ ...viewingFile, profilePic: null });
             };
 
             const filteredStudents = students.filter(student => 
@@ -352,11 +376,11 @@
                             </div>
 
                             <div className="flex-1 flex justify-end gap-3">
-                                {/* Butang Kemaskini (Kini Berfungsi) */}
+                                {/* Butang Kemaskini */}
                                 <button onClick={openEditModal} className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors" title="Kemaskini Rekod">
                                     <i className="fas fa-edit"></i>
                                 </button>
-                                {/* Butang Padam (Kini Berfungsi) */}
+                                {/* Butang Padam */}
                                 <button onClick={handleDeleteStudent} className="px-4 py-2 text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-lg hover:bg-[#fee2e2] transition-colors flex items-center font-bold text-sm">
                                     <i className="fas fa-user-minus mr-2"></i> Padam
                                 </button>
@@ -366,13 +390,40 @@
                         {/* Kandungan Fail Utama */}
                         <div className="max-w-5xl mx-auto mt-8 px-4 pb-12 space-y-8">
                             
-                            {/* 3. REKOD PERIBADI MURID (Mengikut Gambar 223.jpeg) */}
+                            {/* 3. REKOD PERIBADI MURID */}
                             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                 <div className="bg-[#f8fafc] border-b border-gray-200 px-6 py-4">
                                     <h3 className="font-bold text-[#64748b] text-center text-lg uppercase tracking-wider">Rekod Peribadi Murid</h3>
                                 </div>
+                                
+                                {/* GAMBAR PASPORT */}
+                                <div className="flex flex-col items-center justify-center py-6 border-b border-gray-200">
+                                    <div className="w-28 h-36 bg-gray-50 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center mb-4 overflow-hidden relative">
+                                        {viewingFile.profilePic ? (
+                                            <img src={viewingFile.profilePic} alt="Gambar Pasport" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="text-center p-2 text-gray-400">
+                                                <i className="fas fa-user text-4xl mb-2"></i>
+                                                <p className="text-[10px] uppercase font-bold text-gray-400">Gambar Pasport</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex gap-2">
+                                        <label className="cursor-pointer bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center">
+                                            <i className="fas fa-camera mr-2"></i> Muat Naik
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                        </label>
+                                        
+                                        {viewingFile.profilePic && (
+                                            <button onClick={handleDeleteImage} className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center">
+                                                <i className="fas fa-trash-alt mr-2"></i> Padam
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
 
-                                {/* Jadual Maklumat 21 Baris */}
+                                {/* Jadual Maklumat 15 Baris Utama */}
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50">
                                         <tr>
@@ -387,7 +438,7 @@
                                                 <td className="py-3 px-4 text-gray-600 border border-gray-300 text-center font-medium">{index + 1}</td>
                                                 <td className="py-3 px-4 font-medium text-gray-800 border border-gray-300">{item.label}</td>
                                                 <td className="py-3 px-4 text-gray-800 border border-gray-300">
-                                                    {item.label === '' ? '' : (viewingFile[item.id] || <span className="text-gray-400 italic">Belum diisi</span>)}
+                                                    {viewingFile[item.id] || <span className="text-gray-400 italic">Belum diisi</span>}
                                                 </td>
                                             </tr>
                                         ))}
@@ -432,10 +483,8 @@
                                         </button>
                                     </div>
                                     <form onSubmit={handleUpdateStudent} className="flex flex-col h-full max-h-[75vh]">
-                                        {/* Container Scroll untuk Borang */}
                                         <div className="p-6 overflow-y-auto custom-scrollbar flex-grow bg-gray-50 space-y-5">
                                             
-                                            {/* Baris 1: Nama & Kelas */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Penuh</label>
@@ -447,7 +496,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* Baris 2 */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-1">No. Pendaftaran</label>
@@ -459,7 +507,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* Baris 3 */}
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Jantina</label>
@@ -483,7 +530,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* Baris 4 */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Tarikh Lahir</label>
@@ -495,7 +541,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* Maklumat Waris */}
                                             <hr className="border-gray-200" />
                                             <h4 className="font-bold text-gray-700 text-sm"><i className="fas fa-users mr-1"></i> Maklumat Waris / Ibu Bapa</h4>
 
@@ -537,7 +582,6 @@
 
                                         </div>
                                         
-                                        {/* Butang Bawah (Fixed) */}
                                         <div className="p-5 bg-white border-t border-gray-200 flex gap-4">
                                             <button type="button" onClick={() => setShowEditModal(false)} className="w-1/2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors">
                                                 Batal
@@ -555,12 +599,11 @@
             }
 
             // ==========================================
-            // HALAMAN UTAMA (DASHBOARD) - Dikekalkan
+            // HALAMAN UTAMA (DASHBOARD)
             // ==========================================
             return (
                 <div className="min-h-screen relative" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(243, 244, 246, 0.9)', backgroundBlendMode: 'overlay' }}>
                     
-                    {/* Header Banner */}
                     <nav className="bg-[#2a459b] shadow-md relative z-10">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                             <div className="flex justify-between items-center">
@@ -577,7 +620,6 @@
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20 relative z-10">
                         
-                        {/* Seksyen Makluman */}
                         <div className="bg-[#f0f4ff] rounded-xl border border-blue-200 p-5 mb-6 shadow-sm">
                             <div className="flex justify-between items-center mb-4">
                                 <div className="flex items-center space-x-4">
@@ -626,7 +668,6 @@
                             </div>
                         </div>
 
-                        {/* Bar Carian & Butang Tindakan */}
                         <div className="flex flex-col md:flex-row gap-4 mb-6">
                             <div className="flex-grow">
                                 <div className="relative">
@@ -655,7 +696,6 @@
                             </div>
                         </div>
 
-                        {/* Jadual Nama Murid */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10">
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-white border-b border-gray-100">
@@ -692,7 +732,6 @@
                         </div>
                     </div>
 
-                    {/* MODAL: Tambah Murid (Dikekalkan) */}
                     {showAddModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
