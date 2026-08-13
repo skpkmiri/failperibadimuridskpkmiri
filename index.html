@@ -18,29 +18,41 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
+      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
                   url('sekolah.png') center/cover no-repeat fixed;
       padding: 20px;
     }
 
-    /* Kad Utama */
-    .container {
+    /* Kad Utama (Paparan Log Masuk) */
+    #loginView {
       background-color: #f4f5f8;
+      width: 100%;
+      max-width: 440px;
+      padding: 40px 32px 32px;
+      border-radius: 20px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      margin: 20px auto;
+    }
+
+    /* Kad Lebar (Paparan Senarai Murid) */
+    #dashboardView {
+      display: none;
+      background-color: #f8f9fa;
       width: 100%;
       max-width: 900px;
       padding: 35px;
-      border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
-      text-align: center;
-      position: relative;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      margin: 20px auto;
     }
 
     /* Logo Bulat */
     .logo-wrapper {
-      width: 80px;
-      height: 80px;
+      width: 85px;
+      height: 85px;
       border-radius: 50%;
-      margin: 0 auto 15px auto;
+      margin: 0 auto 20px auto;
       overflow: hidden;
       background-color: #ffffff;
       display: flex;
@@ -56,13 +68,13 @@
       object-fit: contain;
     }
 
-    /* Tajuk */
+    /* Tajuk Log Masuk */
     .title {
       color: #111827;
       font-size: 22px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       text-transform: uppercase;
     }
 
@@ -71,16 +83,11 @@
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       text-transform: uppercase;
     }
 
-    /* Form Log Masuk */
-    .login-box {
-      max-width: 400px;
-      margin: 0 auto;
-    }
-
+    /* Borang Input */
     .form-group {
       text-align: left;
       margin-bottom: 20px;
@@ -102,6 +109,7 @@
       border-radius: 8px;
       outline: none;
       background-color: #ffffff;
+      color: #1f2937;
     }
 
     .form-group input:focus {
@@ -109,69 +117,84 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
-    /* Butang */
-    .btn {
+    /* Butang Log Masuk */
+    .btn-login {
       width: 100%;
-      background-color: #2563eb;
+      background-color: #1e3a8a; /* Biru Gelap Mengikut Asal */
       color: #ffffff;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       padding: 12px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.2s;
+      margin-bottom: 24px;
     }
 
-    .btn:hover {
-      background-color: #1d4ed8;
+    .btn-login:hover {
+      background-color: #172554;
     }
-
-    .btn:disabled {
+    
+    .btn-login:disabled {
       background-color: #9ca3af;
       cursor: not-allowed;
     }
 
+    /* Butang Log Keluar (Merah) */
     .btn-logout {
       background-color: #dc2626;
-      width: auto;
-      padding: 8px 18px;
-      font-size: 13px;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .btn-logout:hover {
       background-color: #b91c1c;
     }
 
-    /* Bahagian Dashboard */
-    #dashboardSection {
-      display: none;
-      text-align: left;
+    /* Nota Kaki */
+    .disclaimer {
+      color: #6b7280;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 0 10px;
     }
 
+    /* Header Dashboard */
     .dashboard-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e5e7eb;
+      align-items: flex-start;
+      margin-bottom: 25px;
     }
 
-    .user-info {
+    .dash-title {
+      color: #111827;
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .guru-id {
+      color: #4b5563;
       font-size: 14px;
-      color: #374151;
-      font-weight: 600;
     }
 
-    /* Carian Murid */
-    .search-box {
-      margin-bottom: 15px;
+    /* Carian */
+    .search-container {
+      margin-bottom: 20px;
     }
 
-    .search-box input {
+    .search-container input {
       width: 100%;
-      padding: 10px 14px;
+      padding: 12px 16px;
       font-size: 14px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
@@ -179,11 +202,11 @@
     }
 
     /* Jadual Murid */
-    .table-responsive {
-      overflow-x: auto;
+    .table-container {
       background-color: #ffffff;
       border-radius: 10px;
       border: 1px solid #e5e7eb;
+      overflow-x: auto;
       max-height: 500px;
       overflow-y: auto;
     }
@@ -192,21 +215,22 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 13px;
+      font-size: 13.5px;
     }
 
     th {
-      background-color: #f3f4f6;
-      color: #374151;
-      padding: 12px;
+      background-color: #f9fafb;
+      color: #111827;
+      padding: 14px 16px;
       font-weight: 700;
       border-bottom: 1px solid #e5e7eb;
       position: sticky;
       top: 0;
+      white-space: nowrap;
     }
 
     td {
-      padding: 12px;
+      padding: 14px 16px;
       border-bottom: 1px solid #f3f4f6;
       color: #1f2937;
     }
@@ -215,85 +239,98 @@
       background-color: #f9fafb;
     }
 
-    .disclaimer {
-      color: #6b7280;
-      font-size: 11.5px;
-      margin-top: 20px;
+    /* Lencana Status Lengkap */
+    .badge-lengkap {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .footer-text {
       text-align: center;
+      color: #9ca3af;
+      font-size: 11px;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    
-    <!-- PAPARAN 1: LOG MASUK -->
-    <div id="loginSection">
-      <div class="logo-wrapper">
-        <img src="logo.png" alt="Logo Sekolah" class="logo-img">
-      </div>
-
-      <h1 class="title">MODUL GURU</h1>
-      <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
-
-      <div class="login-box">
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="ic_number">No. Kad Pengenalan Guru</label>
-            <input 
-              type="text" 
-              id="ic_number" 
-              placeholder="Contoh: 810808135501" 
-              required 
-              autocomplete="off"
-            >
-          </div>
-          <button type="submit" class="btn" id="loginBtn">Log Masuk</button>
-        </form>
-        <p class="disclaimer">
-          Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
-        </p>
-      </div>
+  <!-- ================= PAPARAN 1: LOG MASUK ================= -->
+  <div id="loginView">
+    <div class="logo-wrapper">
+      <img src="logo.png" alt="Logo Sekolah" class="logo-img">
     </div>
 
-    <!-- PAPARAN 2: SENARAI MURID (DASHBOARD) -->
-    <div id="dashboardSection">
-      
-      <div class="dashboard-header">
-        <div>
-          <h1 class="title" style="text-align: left; font-size: 18px;">SENARAI FAIL PERIBADI MURID</h1>
-          <div class="user-info" id="guruLog">Guru ID: </div>
-        </div>
-        <button class="btn btn-logout" onclick="logout()">Log Keluar</button>
+    <h1 class="title">FAIL PERIBADI MURID</h1>
+    <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="ic_number">No. Kad Pengenalan Guru</label>
+        <input 
+          type="text" 
+          id="ic_number" 
+          placeholder="Contoh: 970226135344" 
+          required 
+          autocomplete="off"
+        >
       </div>
 
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Cari nama murid atau No. MyKid / OKU..." onkeyup="filterTable()">
-      </div>
+      <button type="submit" class="btn-login" id="loginBtn">Log Masuk</button>
+    </form>
 
-      <div class="table-responsive">
-        <table id="studentTable">
-          <thead>
-            <!-- Header dijana automatik -->
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center;">Memuat turun data murid...</td></tr>
-          </tbody>
-        </table>
+    <p class="disclaimer">
+      Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
+    </p>
+  </div>
+
+
+  <!-- ================= PAPARAN 2: SENARAI MURID ================= -->
+  <div id="dashboardView">
+    
+    <div class="dashboard-header">
+      <div>
+        <h1 class="dash-title">SENARAI FAIL PERIBADI MURID</h1>
+        <p class="guru-id" id="guruLog">Guru ID: -</p>
       </div>
-      
-      <p class="disclaimer">SK Pendidikan Khas Miri © Hak Cipta Terpelihara</p>
+      <button class="btn-logout" onclick="logout()">Log Keluar</button>
+    </div>
+
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Cari nama murid atau No. MyKid..." onkeyup="filterTable()">
+    </div>
+
+    <div class="table-container">
+      <table id="studentTable">
+        <thead>
+          <!-- Header akan dijana automatik dari Google Sheets -->
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="5" style="text-align:center; padding: 30px;">Memuat turun data murid...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-text">
+      SK Pendidikan Khas Miri &copy; Hak Cipta Terpelihara
     </div>
 
   </div>
 
+  <!-- ================= SKRIP FUNGSI (DATABASE) ================= -->
   <script>
-    // Penukaran pautan pubhtml ke output=csv membolehkan JavaScript membacanya terus.
+    // Pautan CSV Google Sheets 
     const URL_GURU = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-vlBOQG_pelA8C9Nfb51agzdS_JyCBV0VJCfFWy-dZV7dvZp1AwQgkGGuSLxoViVHvzmjH0SfBbLD/pub?output=csv';
-    
     const URL_MURID = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv';
 
-    // FUNGSI 1: Log Masuk
+    // FUNGSI 1: Pengesahan Log Masuk Guru
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
@@ -301,7 +338,7 @@
       const loginBtn = document.getElementById('loginBtn');
       
       loginBtn.disabled = true;
-      loginBtn.textContent = 'Menyemak Data...';
+      loginBtn.textContent = 'Menyemak Pangkalan Data...';
 
       try {
         const response = await fetch(URL_GURU);
@@ -309,9 +346,8 @@
         const rows = parseCSV(csvData);
         
         let isValid = false;
-        // Menyemak setiap baris untuk padanan No. KP
+        // Semak IC dalam Google Sheets
         for(let i = 0; i < rows.length; i++) {
-          // Cari jika sebarang kolum dalam baris tersebut mempunyai No KP
           if(rows[i].some(cell => cell.trim() === icInput)) {
             isValid = true;
             break;
@@ -319,22 +355,26 @@
         }
 
         if(isValid) {
-          document.getElementById('loginSection').style.display = 'none';
-          document.getElementById('dashboardSection').style.display = 'block';
+          // Berjaya Log Masuk
+          document.getElementById('loginView').style.display = 'none';
+          document.getElementById('dashboardView').style.display = 'block';
           document.getElementById('guruLog').textContent = "Guru ID: " + icInput;
-          fetchSenaraiMurid(); // Muat turun senarai murid jika log masuk berjaya
+          
+          // Muat Turun Data Murid
+          fetchSenaraiMurid(); 
         } else {
-          alert('Log Masuk Gagal: No. Kad Pengenalan tidak wujud di dalam sistem pangkalan data guru.');
+          alert('RALAT: No. Kad Pengenalan tidak wujud di dalam sistem pangkalan data.');
         }
       } catch (error) {
-        alert('Ralat menyambung ke pangkalan data Google Sheets.');
+        alert('Gagal menyambung ke pangkalan data Google Sheets. Sila semak sambungan internet anda.');
       }
 
       loginBtn.disabled = false;
       loginBtn.textContent = 'Log Masuk';
     });
 
-    // FUNGSI 2: Tarik Data Murid
+
+    // FUNGSI 2: Tarik & Susun Senarai Murid
     async function fetchSenaraiMurid() {
       const tableThead = document.querySelector('#studentTable thead');
       const tableTbody = document.querySelector('#studentTable tbody');
@@ -346,7 +386,7 @@
 
         if(rows.length === 0) return;
 
-        // Jana Header Jadual
+        // 1. Bina Header (Baris Pertama CSV)
         const headers = rows[0];
         let theadHTML = '<tr>';
         headers.forEach(h => {
@@ -355,25 +395,33 @@
         theadHTML += '</tr>';
         tableThead.innerHTML = theadHTML;
 
-        // Jana Data Murid
+        // 2. Bina Data Row (Baris Seterusnya)
         let tbodyHTML = '';
         for(let i = 1; i < rows.length; i++) {
           if(rows[i].length > 1 || rows[i][0] !== "") {
             tbodyHTML += '<tr>';
+            
             rows[i].forEach(col => {
-              tbodyHTML += `<td>${col}</td>`;
+              // Jika data tertulis "Lengkap", tukar menjadi lencana hijau (badge)
+              if (col.trim().toLowerCase() === 'lengkap') {
+                tbodyHTML += `<td><span class="badge-lengkap">Lengkap</span></td>`;
+              } else {
+                tbodyHTML += `<td>${col}</td>`;
+              }
             });
+            
             tbodyHTML += '</tr>';
           }
         }
         tableTbody.innerHTML = tbodyHTML;
 
       } catch (error) {
-        tableTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat turun data murid. Sila muat semula.</td></tr>';
+        tableTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat turun senarai murid. Sila muat semula halaman.</td></tr>';
       }
     }
 
-    // FUNGSI 3: Carian Murid
+
+    // FUNGSI 3: Enjin Carian Jadual
     function filterTable() {
       const input = document.getElementById("searchInput");
       const filter = input.value.toUpperCase();
@@ -396,15 +444,17 @@
       }
     }
 
-    // FUNGSI 4: Log Keluar
+
+    // FUNGSI 4: Log Keluar Kembali Ke Paparan Asal
     function logout() {
-      document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('dashboardView').style.display = 'none';
       document.getElementById('ic_number').value = '';
       document.getElementById("searchInput").value = '';
     }
 
-    // FUNGSI 5: Pembaca Format CSV
+
+    // FUNGSI 5: Pembaca CSV (Parser)
     function parseCSV(str) {
       const arr = [];
       let quote = false;
@@ -424,5 +474,6 @@
       return arr;
     }
   </script>
+
 </body>
 </html>
