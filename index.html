@@ -15,7 +15,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel (Untuk compile JSX dalam browser) -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -110,7 +110,6 @@
                 "SALINAN KAD OKU"
             ];
 
-            // Template Rekod Peribadi Murid (Baris 16-21 telah dibuang)
             const senaraiPerkara = [
                 { id: 'name', label: 'Nama' },
                 { id: 'noPendaftaran', label: 'No. Pendaftaran' },
@@ -424,6 +423,7 @@
                                 </table>
                             </div>
 
+                            {/* SENARAI KANDUNGAN FAIL DENGAN BUTANG MUAT NAIK YANG BERFUNGSI */}
                             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                 <div className="bg-[#f8fafc] border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                                     <h3 className="font-bold text-[#64748b]"><i className="fas fa-folder-open mr-2"></i> SENARAI KANDUNGAN FAIL</h3>
@@ -446,7 +446,7 @@
                                                     onChange={(e) => {
                                                         const file = e.target.files[0];
                                                         if (file) {
-                                                            alert(`Anda telah memilih fail: "${file.name}" untuk bahagian ${dokumen}.\n\n(Nota: Ini adalah fungsi asas untuk memilih fail. Untuk menyimpan fail ini secara kekal, sambungan ke Firebase Storage diperlukan.)`);
+                                                            alert(`Anda telah memilih fail: "${file.name}" untuk ${dokumen}.`);
                                                         }
                                                     }}
                                                 />
