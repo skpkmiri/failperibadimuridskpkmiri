@@ -26,11 +26,14 @@
         }
         /* Scrollbar untuk modal/popup */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
+            background-color: #94a3b8;
             border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
         }
     </style>
 </head>
@@ -99,7 +102,7 @@
                 name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' 
             });
 
-            // Senarai Kandungan Fail
+            // Senarai Kandungan Fail (Bahagian 4)
             const senaraiKandungan = [
                 "KAD 001",
                 "BORANG MAKLUMAT PELAJAR",
@@ -110,6 +113,31 @@
                 "SURAT KEBENARAN AM IBUBAPA",
                 "SALINAN MAKLUMAT DISIPLIN",
                 "SALINAN KAD OKU"
+            ];
+
+            // Template Rekod Peribadi Murid merujuk Gambar 223.jpeg
+            const senaraiPerkara = [
+                { id: 'name', label: 'Nama' },
+                { id: 'noPendaftaran', label: 'No. Pendaftaran' },
+                { id: 'tarikhMasuk', label: 'Tarikh Masuk Sekolah' },
+                { id: 'jantina', label: 'Jantina' },
+                { id: 'bangsa', label: 'Bangsa' },
+                { id: 'asramaHarian', label: 'Asrama / Harian' },
+                { id: 'tarikhLahir', label: 'Tarikh Lahir' },
+                { id: 'tempatLahir', label: 'Tempat Lahir' },
+                { id: 'namaWaris', label: 'Nama Bapa / Penjaga / Ibu' },
+                { id: 'pekerjaanWaris', label: 'Pekerjaan Bapa / Ibu' },
+                { id: 'alamat', label: 'Alamat' },
+                { id: 'icWaris', label: 'No. Kad Pengenalan Bapa / Ibu / Penjaga' },
+                { id: 'telRumah', label: 'No. Telefon Rumah' },
+                { id: 'hpWaris', label: 'No. Handphone Bapa / Penjaga / Ibu' },
+                { id: 'jawatanKhas', label: 'Jawatan Khas Di Sekolah' },
+                { id: 'kosong16', label: '' },
+                { id: 'kosong17', label: '' },
+                { id: 'kosong18', label: '' },
+                { id: 'kosong19', label: '' },
+                { id: 'kosong20', label: '' },
+                { id: 'kosong21', label: '' }
             ];
 
             useEffect(() => {
@@ -141,8 +169,15 @@
                                     const kelasMurid = arr[classCol] ? arr[classCol].replace(/^"|"$/g, '').trim() : '-';
                                     
                                     if (namaMurid && isNaN(namaMurid) && namaMurid !== '-') {
-                                        // Kekalkan ejaan asal
-                                        parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
+                                        // Set data default berserta perkara baharu supaya tidak undefined
+                                        parsedStudents.push({ 
+                                            name: namaMurid, 
+                                            kelas: kelasMurid,
+                                            noPendaftaran: '', tarikhMasuk: '', jantina: '', bangsa: '', 
+                                            asramaHarian: '', tarikhLahir: '', tempatLahir: '', namaWaris: '', 
+                                            pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
+                                            hpWaris: '', jawatanKhas: ''
+                                        });
                                     }
                                 }
                             }
@@ -205,7 +240,13 @@
             const submitNewStudent = (e) => {
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
-                    setStudents([{ name: newStudent.name, kelas: newStudent.kelas }, ...students]);
+                    setStudents([{ 
+                        ...newStudent,
+                        noPendaftaran: '', tarikhMasuk: '', jantina: '', bangsa: '', 
+                        asramaHarian: '', tarikhLahir: '', tempatLahir: '', namaWaris: '', 
+                        pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
+                        hpWaris: '', jawatanKhas: ''
+                    }, ...students]);
                     setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
                 }
@@ -222,17 +263,18 @@
                 e.preventDefault();
                 const updatedList = students.map(s => {
                     if (s.name === viewingFile.name) {
-                        return { ...s, name: editForm.name, kelas: editForm.kelas };
+                        return { ...s, ...editForm };
                     }
                     return s;
                 });
                 setStudents(updatedList);
-                setViewingFile({ ...viewingFile, name: editForm.name, kelas: editForm.kelas });
+                setViewingFile({ ...viewingFile, ...editForm });
                 setShowEditModal(false);
             };
 
             const openEditModal = () => {
-                setEditForm({ name: viewingFile.name, kelas: viewingFile.kelas });
+                // Salin semua data semasa pelajar ke dalam form
+                setEditForm({ ...viewingFile });
                 setShowEditModal(true);
             };
 
@@ -306,12 +348,12 @@
                             
                             <div className="flex-1 text-center">
                                 <h1 className="text-xl font-bold text-gray-900">{viewingFile.name}</h1>
-                                <p className="text-sm text-gray-500 font-medium">{viewingFile.kelas} • 2026</p>
+                                <p className="text-sm text-gray-500 font-medium">{viewingFile.kelas}</p>
                             </div>
 
                             <div className="flex-1 flex justify-end gap-3">
                                 {/* Butang Kemaskini (Kini Berfungsi) */}
-                                <button onClick={openEditModal} className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                                <button onClick={openEditModal} className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors" title="Kemaskini Rekod">
                                     <i className="fas fa-edit"></i>
                                 </button>
                                 {/* Butang Padam (Kini Berfungsi) */}
@@ -324,44 +366,31 @@
                         {/* Kandungan Fail Utama */}
                         <div className="max-w-5xl mx-auto mt-8 px-4 pb-12 space-y-8">
                             
-                            {/* 3. REKOD PERIBADI MURID */}
+                            {/* 3. REKOD PERIBADI MURID (Mengikut Gambar 223.jpeg) */}
                             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                 <div className="bg-[#f8fafc] border-b border-gray-200 px-6 py-4">
-                                    <h3 className="font-bold text-[#64748b]"><i className="fas fa-address-card mr-2"></i> MAKLUMAT PERIBADI MURID</h3>
-                                </div>
-                                {/* Bahagian Gambar Profil */}
-                                <div className="flex flex-col items-center justify-center py-8">
-                                    <div className="w-32 h-32 bg-gray-200 rounded-2xl flex items-center justify-center mb-4">
-                                        <i className="fas fa-user text-6xl text-gray-400"></i>
-                                    </div>
-                                    <p className="text-gray-400 italic font-medium">Tiada gambar profil</p>
+                                    <h3 className="font-bold text-[#64748b] text-center text-lg uppercase tracking-wider">Rekod Peribadi Murid</h3>
                                 </div>
 
-                                {/* Jadual Maklumat */}
-                                <table className="w-full text-left border-collapse border-t border-gray-200">
-                                    <thead className="bg-[#f8fafc]">
+                                {/* Jadual Maklumat 21 Baris */}
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="py-4 px-6 w-20 text-[#64748b] font-bold border-r border-b border-gray-200 text-center">Bil</th>
-                                            <th className="py-4 px-6 w-1/3 text-[#64748b] font-bold border-r border-b border-gray-200">PERKARA</th>
-                                            <th className="py-4 px-6 text-[#64748b] font-bold border-b border-gray-200">MAKLUMAT</th>
+                                            <th className="py-3 px-4 w-16 text-gray-700 font-bold border border-gray-300 text-center text-sm">Bil</th>
+                                            <th className="py-3 px-4 w-1/3 text-gray-700 font-bold border border-gray-300 text-sm uppercase">PERKARA</th>
+                                            <th className="py-3 px-4 text-gray-700 font-bold border border-gray-300 text-sm"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="hover:bg-gray-50 transition-colors">
-                                            <td className="py-5 px-6 text-gray-500 border-r border-b border-gray-200 text-center">1</td>
-                                            <td className="py-5 px-6 font-bold text-gray-800 border-r border-b border-gray-200">Nama</td>
-                                            <td className="py-5 px-6 text-gray-800 font-medium border-b border-gray-200">{viewingFile.name}</td>
-                                        </tr>
-                                        <tr className="hover:bg-gray-50 transition-colors">
-                                            <td className="py-5 px-6 text-gray-500 border-r border-b border-gray-200 text-center">2</td>
-                                            <td className="py-5 px-6 font-bold text-gray-800 border-r border-b border-gray-200">No. Pendaftaran</td>
-                                            <td className="py-5 px-6 text-gray-400 italic border-b border-gray-200">Tiada maklumat</td>
-                                        </tr>
-                                        <tr className="hover:bg-gray-50 transition-colors">
-                                            <td className="py-5 px-6 text-gray-500 border-r border-b border-gray-200 text-center">3</td>
-                                            <td className="py-5 px-6 font-bold text-gray-800 border-r border-b border-gray-200">Tarikh Masuk Sekolah</td>
-                                            <td className="py-5 px-6 text-gray-400 italic border-b border-gray-200">Tiada maklumat</td>
-                                        </tr>
+                                        {senaraiPerkara.map((item, index) => (
+                                            <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                                <td className="py-3 px-4 text-gray-600 border border-gray-300 text-center font-medium">{index + 1}</td>
+                                                <td className="py-3 px-4 font-medium text-gray-800 border border-gray-300">{item.label}</td>
+                                                <td className="py-3 px-4 text-gray-800 border border-gray-300">
+                                                    {item.label === '' ? '' : (viewingFile[item.id] || <span className="text-gray-400 italic">Belum diisi</span>)}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -393,47 +422,128 @@
                         {/* MODAL: Kemaskini Murid */}
                         {showEditModal && (
                             <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-                                    <div className="bg-blue-600 p-5 flex justify-between items-center text-white">
+                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col">
+                                    <div className="bg-[#1e3a8a] p-5 flex justify-between items-center text-white">
                                         <h3 className="font-bold text-lg flex items-center">
-                                            <i className="fas fa-user-edit mr-2"></i> Kemaskini Maklumat
+                                            <i className="fas fa-user-edit mr-2"></i> Kemaskini Rekod Peribadi
                                         </h3>
                                         <button onClick={() => setShowEditModal(false)} className="text-white hover:text-blue-200 focus:outline-none">
                                             <i className="fas fa-times text-xl"></i>
                                         </button>
                                     </div>
-                                    <form onSubmit={handleUpdateStudent} className="p-6 space-y-5">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Penuh Murid</label>
-                                            <input 
-                                                type="text" required
-                                                value={editForm?.name || ''} 
-                                                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
-                                            />
+                                    <form onSubmit={handleUpdateStudent} className="flex flex-col h-full max-h-[75vh]">
+                                        {/* Container Scroll untuk Borang */}
+                                        <div className="p-6 overflow-y-auto custom-scrollbar flex-grow bg-gray-50 space-y-5">
+                                            
+                                            {/* Baris 1: Nama & Kelas */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Penuh</label>
+                                                    <input type="text" value={editForm?.name || ''} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Kelas</label>
+                                                    <input type="text" value={editForm?.kelas || ''} onChange={(e) => setEditForm({...editForm, kelas: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                                                </div>
+                                            </div>
+
+                                            {/* Baris 2 */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">No. Pendaftaran</label>
+                                                    <input type="text" value={editForm?.noPendaftaran || ''} onChange={(e) => setEditForm({...editForm, noPendaftaran: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tarikh Masuk Sekolah</label>
+                                                    <input type="date" value={editForm?.tarikhMasuk || ''} onChange={(e) => setEditForm({...editForm, tarikhMasuk: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                            </div>
+
+                                            {/* Baris 3 */}
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Jantina</label>
+                                                    <select value={editForm?.jantina || ''} onChange={(e) => setEditForm({...editForm, jantina: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                                        <option value="">Pilih</option>
+                                                        <option value="Lelaki">Lelaki</option>
+                                                        <option value="Perempuan">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Bangsa</label>
+                                                    <input type="text" value={editForm?.bangsa || ''} onChange={(e) => setEditForm({...editForm, bangsa: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Asrama / Harian</label>
+                                                    <select value={editForm?.asramaHarian || ''} onChange={(e) => setEditForm({...editForm, asramaHarian: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                                        <option value="">Pilih</option>
+                                                        <option value="Asrama">Asrama</option>
+                                                        <option value="Harian">Harian</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            {/* Baris 4 */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tarikh Lahir</label>
+                                                    <input type="date" value={editForm?.tarikhLahir || ''} onChange={(e) => setEditForm({...editForm, tarikhLahir: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tempat Lahir</label>
+                                                    <input type="text" value={editForm?.tempatLahir || ''} onChange={(e) => setEditForm({...editForm, tempatLahir: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                            </div>
+
+                                            {/* Maklumat Waris */}
+                                            <hr className="border-gray-200" />
+                                            <h4 className="font-bold text-gray-700 text-sm"><i className="fas fa-users mr-1"></i> Maklumat Waris / Ibu Bapa</h4>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Bapa / Penjaga / Ibu</label>
+                                                    <input type="text" value={editForm?.namaWaris || ''} onChange={(e) => setEditForm({...editForm, namaWaris: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">No. Kad Pengenalan Waris</label>
+                                                    <input type="text" value={editForm?.icWaris || ''} onChange={(e) => setEditForm({...editForm, icWaris: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Pekerjaan Bapa / Ibu</label>
+                                                    <input type="text" value={editForm?.pekerjaanWaris || ''} onChange={(e) => setEditForm({...editForm, pekerjaanWaris: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">No. Handphone Waris</label>
+                                                    <input type="text" value={editForm?.hpWaris || ''} onChange={(e) => setEditForm({...editForm, hpWaris: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Alamat</label>
+                                                    <textarea value={editForm?.alamat || ''} onChange={(e) => setEditForm({...editForm, alamat: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" rows="2"></textarea>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">No. Telefon Rumah</label>
+                                                    <input type="text" value={editForm?.telRumah || ''} onChange={(e) => setEditForm({...editForm, telRumah: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4" />
+                                                    
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Jawatan Khas Di Sekolah</label>
+                                                    <input type="text" value={editForm?.jawatanKhas || ''} onChange={(e) => setEditForm({...editForm, jawatanKhas: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                            </div>
+
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kelas</label>
-                                            <input 
-                                                type="text" required
-                                                value={editForm?.kelas || ''} 
-                                                onChange={(e) => setEditForm({...editForm, kelas: e.target.value})}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
-                                            />
-                                        </div>
-                                        <div className="pt-4 flex gap-4">
-                                            <button 
-                                                type="button" 
-                                                onClick={() => setShowEditModal(false)} 
-                                                className="w-1/2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                                            >
+                                        
+                                        {/* Butang Bawah (Fixed) */}
+                                        <div className="p-5 bg-white border-t border-gray-200 flex gap-4">
+                                            <button type="button" onClick={() => setShowEditModal(false)} className="w-1/2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors">
                                                 Batal
                                             </button>
-                                            <button 
-                                                type="submit" 
-                                                className="w-1/2 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
-                                            >
-                                                Simpan
+                                            <button type="submit" className="w-1/2 py-3 bg-[#1e3a8a] text-white rounded-xl font-bold hover:bg-blue-800 transition-colors">
+                                                Simpan Rekod
                                             </button>
                                         </div>
                                     </form>
@@ -445,7 +555,7 @@
             }
 
             // ==========================================
-            // HALAMAN UTAMA (DASHBOARD)
+            // HALAMAN UTAMA (DASHBOARD) - Dikekalkan
             // ==========================================
             return (
                 <div className="min-h-screen relative" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(243, 244, 246, 0.9)', backgroundBlendMode: 'overlay' }}>
@@ -582,7 +692,7 @@
                         </div>
                     </div>
 
-                    {/* MODAL: Tambah Murid */}
+                    {/* MODAL: Tambah Murid (Dikekalkan) */}
                     {showAddModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
