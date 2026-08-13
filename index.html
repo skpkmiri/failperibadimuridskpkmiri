@@ -72,11 +72,36 @@
             const [error, setError] = useState('');
             const [loading, setLoading] = useState(true);
 
-            // Senarai IC yang dibenarkan (Boleh diubah suai mengikut keperluan)
-            const AUTHORIZED_ICS = ['123456789012', '987654321098', 'admin123'];
+            // Senarai IC yang dikekalkan secara kekal (Admin/Guru)
+            const [authorizedIcs, setAuthorizedIcs] = useState([
+                '810808135501', 
+                '910110136471', 
+                '880927135284', 
+                '920422135813', 
+                '970226135344',
+                'admin123'
+            ]);
 
             useEffect(() => {
-                // Tunggu Firebase dimuatkan
+                // 1. Dapatkan senarai IC murid secara dinamik dari Google Sheets (CSV)
+                const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT-vlBOQG_pelA8C9Nfb51agzdS_JyCBV0VJCfFWy-dZV7dvZp1AwQgkGGuSLxoViVHvzmjH0SfBbLD/pub?output=csv";
+                
+                fetch(fetchCsvUrl)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        // Buang simbol "-" jika wujud dan cari corak 12-digit nombor dalam fail CSV
+                        const textTanpaSengkang = csvText.replace(/-/g, '');
+                        const icDariCsv = textTanpaSengkang.match(/\b\d{12}\b/g) || [];
+                        
+                        // Gabungkan IC sedia ada dengan IC dari Google Sheets (tanpa pertindihan/duplicate)
+                        setAuthorizedIcs(prevIcs => {
+                            const gabungan = [...prevIcs, ...icDariCsv];
+                            return [...new Set(gabungan)];
+                        });
+                    })
+                    .catch(err => console.error("Ralat memuat turun senarai IC Google Sheets:", err));
+
+                // 2. Tunggu Firebase dimuatkan
                 const checkFirebase = setInterval(() => {
                     if (window.firebaseAuth) {
                         clearInterval(checkFirebase);
@@ -102,7 +127,11 @@
 
             const handleLogin = (e) => {
                 e.preventDefault();
-                if (AUTHORIZED_ICS.includes(icNumber)) {
+                
+                // Semak samada nombor dimasukkan bersih dari sempang '-'
+                const cleanInput = icNumber.replace(/-/g, '');
+
+                if (authorizedIcs.includes(cleanInput)) {
                     setIsAuthenticated(true);
                     setError('');
                 } else {
@@ -121,7 +150,6 @@
             // --- SKRIN LOG MASUK ---
             if (!isAuthenticated) {
                 return (
-                    // PERUBAHAN 1: Background ditukar ke sekolah.png
                     <div 
                         className="min-h-screen flex items-center justify-center px-4" 
                         style={{ 
@@ -129,21 +157,19 @@
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center', 
                             backgroundAttachment: 'fixed',
-                            backgroundColor: 'rgba(255, 255, 255, 0.7)', // Overlay putih supaya nampak jelas
+                            backgroundColor: 'rgba(255, 255, 255, 0.7)', 
                             backgroundBlendMode: 'overlay' 
                         }}
                     >
                         <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
                             <div className="text-center mb-8">
                                 
-                                {/* PERUBAHAN 2: logo.png dalam frame bulat (menggantikan ikon kunci) */}
                                 <div className="flex justify-center mb-4">
                                     <img 
                                         src="logo.png" 
                                         alt="Logo Sekolah" 
                                         className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg bg-gray-50"
                                         onError={(e) => {
-                                            // Fallback jika logo.png tiada dalam folder
                                             e.target.onerror = null; 
                                             e.target.src = "https://via.placeholder.com/150?text=Logo";
                                         }}
@@ -195,7 +221,6 @@
 
             // --- SKRIN UTAMA (DASHBOARD) ---
             return (
-                // Latar belakang sekolah.png dikekalkan juga untuk skrin utama
                 <div 
                     className="min-h-screen"
                     style={{ 
@@ -203,7 +228,7 @@
                         backgroundSize: 'cover', 
                         backgroundPosition: 'center', 
                         backgroundAttachment: 'fixed',
-                        backgroundColor: 'rgba(243, 244, 246, 0.9)', // Latar belakang kelabu pudar (overlay)
+                        backgroundColor: 'rgba(243, 244, 246, 0.9)', 
                         backgroundBlendMode: 'overlay'
                     }}
                 >
