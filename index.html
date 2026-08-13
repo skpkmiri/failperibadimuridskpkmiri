@@ -108,7 +108,7 @@
 
                         const rows = csvText.split('\n').filter(row => row.trim() !== '');
                         if (rows.length > 0) {
-                            const headers = rows[0].split(',').map(h => h.trim().toUpperCase());
+                            const headers = rows[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
                             let nameCol = 0; let classCol = 1;
                             
                             for (let i = 0; i < headers.length; i++) {
@@ -118,12 +118,16 @@
 
                             const parsedStudents = [];
                             for (let i = 1; i < rows.length; i++) {
-                                const arr = rows[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                                const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '';
-                                const kelasMurid = arr[classCol] ? arr[classCol].replace(/"/g, '') : '-';
+                                // PERBAIKAN: Pisahkan CSV menggunakan regex koma sahaja (bukan space)
+                                const arr = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                                 
-                                if (namaMurid && isNaN(namaMurid) && namaMurid !== '-') {
-                                    parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
+                                if (arr.length > Math.max(nameCol, classCol)) {
+                                    const namaMurid = arr[nameCol] ? arr[nameCol].replace(/^"|"$/g, '').trim() : '';
+                                    const kelasMurid = arr[classCol] ? arr[classCol].replace(/^"|"$/g, '').trim() : '-';
+                                    
+                                    if (namaMurid && isNaN(namaMurid) && namaMurid !== '-') {
+                                        parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
+                                    }
                                 }
                             }
                             setStudents(parsedStudents);
@@ -131,9 +135,9 @@
                     })
                     .catch(err => console.error("Ralat memuat turun data CSV:", err));
 
-                // 2. Sambungan Firebase berserta Error Handling (Penyelesaian Isu Loading Tersangkut)
+                // 2. Sambungan Firebase berserta Error Handling
                 const fallbackTimer = setTimeout(() => {
-                    setLoading(false); // Paksa buang loading screen selepas 3 saat walaupun Firebase gagal
+                    setLoading(false);
                 }, 3000);
 
                 const checkFirebase = setInterval(() => {
@@ -189,7 +193,6 @@
             const submitNewStudent = (e) => {
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
-                    // Dikekalkan casing asal seperti ditaip pengguna
                     setStudents([{ name: newStudent.name, kelas: newStudent.kelas }, ...students]);
                     setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
@@ -442,7 +445,6 @@
                                                 onClick={() => setViewingFile(student)}
                                                 className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors"
                                             >
-                                                {/* Paparan nama murid kini sama mengikut asal tanpa dipaksa menjadi huruf besar */}
                                                 <td className="py-4 px-6 font-bold text-gray-800">{student.name}</td>
                                                 <td className="py-4 px-6 text-gray-500">{student.kelas}</td>
                                             </tr>
