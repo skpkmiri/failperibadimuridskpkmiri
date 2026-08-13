@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fail Peribadi Murid - SK Pendidikan Khas Miri</title>
+  <!-- Ikon FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Reset & Gaya Asas */
+    /* Reset Asas */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -14,200 +16,162 @@
     }
 
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background-color: #eef2f6; /* Latar belakang kelabu cair kebiruan */
       min-height: 100vh;
-      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
-                  url('sekolah.png') center/cover no-repeat fixed;
-      padding: 20px;
     }
 
-    /* Kad Utama (Paparan Log Masuk) */
-    #loginView {
-      background-color: #f4f5f8;
-      width: 100%;
-      max-width: 440px;
-      padding: 40px 32px 32px;
-      border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      margin: 20px auto;
-    }
-
-    /* Kad Lebar (Paparan Senarai Murid) */
-    #dashboardView {
-      display: none;
-      background-color: #f8f9fa;
-      width: 100%;
-      max-width: 900px;
-      padding: 35px;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-      margin: 20px auto;
-    }
-
-    /* Logo Bulat */
-    .logo-wrapper {
-      width: 85px;
-      height: 85px;
-      border-radius: 50%;
-      margin: 0 auto 20px auto;
-      overflow: hidden;
-      background-color: #ffffff;
+    /* ================= HEADER UTAMA ================= */
+    .header {
+      background-color: #2a52be; /* Biru mengikut gambar */
+      color: white;
+      padding: 15px 30px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-      border: 2px solid #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .logo-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    /* Tajuk Log Masuk */
-    .title {
-      color: #111827;
+    .header-titles h1 {
       font-size: 22px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
-      text-transform: uppercase;
     }
 
-    .subtitle {
-      color: #2563eb;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      margin-bottom: 28px;
-      text-transform: uppercase;
-    }
-
-    /* Borang Input */
-    .form-group {
-      text-align: left;
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      color: #374151;
+    .header-titles h2 {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 8px;
+      color: #cbd5e1;
+      margin-top: 3px;
     }
 
-    .form-group input {
-      width: 100%;
-      padding: 12px 16px;
+    .btn-header-logout {
+      background: transparent;
+      border: none;
+      color: white;
       font-size: 15px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      outline: none;
-      background-color: #ffffff;
-      color: #1f2937;
-    }
-
-    .form-group input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
-
-    /* Butang Log Masuk */
-    .btn-login {
-      width: 100%;
-      background-color: #1e3a8a; /* Biru Gelap Mengikut Asal */
-      color: #ffffff;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.2s;
-      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .btn-login:hover {
-      background-color: #172554;
-    }
-    
-    .btn-login:disabled {
-      background-color: #9ca3af;
-      cursor: not-allowed;
+    .btn-header-logout:hover {
+      text-decoration: underline;
     }
 
-    /* Butang Log Keluar (Merah) */
-    .btn-logout {
-      background-color: #dc2626;
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+    /* ================= KAWASAN KANDUNGAN ================= */
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
     }
 
-    .btn-logout:hover {
-      background-color: #b91c1c;
+    /* PAPAN MAKLUMAN */
+    .notice-board {
+      background-color: #f4f8ff;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    /* Nota Kaki */
-    .disclaimer {
-      color: #6b7280;
-      font-size: 11px;
-      line-height: 1.5;
-      padding: 0 10px;
-    }
-
-    /* Header Dashboard */
-    .dashboard-header {
+    .notice-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .notice-title {
+      font-weight: 700;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+    }
+
+    .notice-icon-box {
+      background-color: #e0e7ff;
+      color: #1d4ed8;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+
+    .btn-kemaskini {
+      background-color: #e0e7ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .notice-content {
+      color: #1e3a8a;
+      font-size: 14.5px;
+      line-height: 1.6;
+      padding-left: 52px; /* Selari dengan teks tajuk */
+    }
+
+    .notice-content p {
+      margin-bottom: 15px;
+    }
+
+    /* BAR TINDAKAN (Carian & Butang) */
+    .action-bar {
+      display: flex;
+      gap: 15px;
       margin-bottom: 25px;
     }
 
-    .dash-title {
-      color: #111827;
-      font-size: 20px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-
-    .guru-id {
-      color: #4b5563;
-      font-size: 14px;
-    }
-
-    /* Carian */
-    .search-container {
-      margin-bottom: 20px;
-    }
-
-    .search-container input {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
+    .search-input {
+      flex-grow: 1;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       outline: none;
     }
 
-    /* Jadual Murid */
-    .table-container {
-      background-color: #ffffff;
+    .search-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .btn-action {
+      padding: 0 20px;
+      border: none;
       border-radius: 10px;
-      border: 1px solid #e5e7eb;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-tambah { background-color: #2563eb; }
+    .btn-muatturun { background-color: #16a34a; }
+    .btn-arkib { background-color: #374151; }
+
+    /* JADUAL MURID */
+    .table-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       overflow-x: auto;
-      max-height: 500px;
+      max-height: 600px;
       overflow-y: auto;
     }
 
@@ -215,254 +179,217 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
-      font-size: 13.5px;
     }
 
     th {
-      background-color: #f9fafb;
-      color: #111827;
-      padding: 14px 16px;
-      font-weight: 700;
-      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+      color: #4b5563;
+      padding: 16px 20px;
+      border-bottom: 2px solid #f3f4f6;
+      font-weight: 600;
       position: sticky;
       top: 0;
-      white-space: nowrap;
+      background-color: white;
     }
 
     td {
-      padding: 14px 16px;
+      font-size: 14px;
+      color: #111827;
+      padding: 16px 20px;
       border-bottom: 1px solid #f3f4f6;
-      color: #1f2937;
+      font-weight: 500;
     }
 
-    tr:hover {
-      background-color: #f9fafb;
-    }
+    tr:hover { background-color: #f9fafb; }
 
-    /* Lencana Status Lengkap */
-    .badge-lengkap {
-      display: inline-block;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 6px;
-      background-color: #dcfce7;
-      color: #166534;
+    /* ================= PAPARAN LOG MASUK (Tersembunyi Awal) ================= */
+    #loginView {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #eef2f6;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 1000;
     }
-
-    .footer-text {
-      text-align: center;
-      color: #9ca3af;
-      font-size: 11px;
-      margin-top: 20px;
+    .login-card {
+      background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%;
     }
+    .login-card input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #d1d5db; border-radius: 8px; }
+    .login-card button { width: 100%; padding: 12px; background: #2a52be; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <!-- ================= PAPARAN 1: LOG MASUK ================= -->
+  <!-- ================= PAPARAN LOG MASUK ================= -->
   <div id="loginView">
-    <div class="logo-wrapper">
-      <img src="logo.png" alt="Logo Sekolah" class="logo-img">
+    <div class="login-card">
+      <h2 style="color:#1e3a8a; margin-bottom:10px;">LOG MASUK GURU</h2>
+      <p style="font-size:13px; color:#6b7280;">Sila masukkan No Kad Pengenalan untuk meneruskan.</p>
+      <form id="loginForm">
+        <input type="text" id="ic_number" placeholder="No. Kad Pengenalan..." required autocomplete="off">
+        <button type="submit" id="loginBtn">Log Masuk</button>
+      </form>
     </div>
-
-    <h1 class="title">FAIL PERIBADI MURID</h1>
-    <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
-
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="ic_number">No. Kad Pengenalan Guru</label>
-        <input 
-          type="text" 
-          id="ic_number" 
-          placeholder="Contoh: 970226135344" 
-          required 
-          autocomplete="off"
-        >
-      </div>
-
-      <button type="submit" class="btn-login" id="loginBtn">Log Masuk</button>
-    </form>
-
-    <p class="disclaimer">
-      Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
-    </p>
   </div>
 
-
-  <!-- ================= PAPARAN 2: SENARAI MURID ================= -->
-  <div id="dashboardView">
+  <!-- ================= PAPARAN DASHBOARD (Sama Macam Gambar) ================= -->
+  <div id="dashboardView" style="display: none;">
     
-    <div class="dashboard-header">
-      <div>
-        <h1 class="dash-title">SENARAI FAIL PERIBADI MURID</h1>
-        <p class="guru-id" id="guruLog">Guru ID: -</p>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-titles">
+        <h1>FAIL PERIBADI MURID</h1>
+        <h2>SK PENDIDIKAN KHAS MIRI</h2>
       </div>
-      <button class="btn-logout" onclick="logout()">Log Keluar</button>
-    </div>
+      <button class="btn-header-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Log Keluar
+      </button>
+    </header>
 
-    <div class="search-container">
-      <input type="text" id="searchInput" placeholder="Cari nama murid atau No. MyKid..." onkeyup="filterTable()">
-    </div>
+    <div class="container">
+      
+      <!-- Papan Makluman -->
+      <div class="notice-board">
+        <div class="notice-header">
+          <div class="notice-title">
+            <div class="notice-icon-box"><i class="fas fa-bullhorn"></i></div>
+            PAPAN MAKLUMAN / TINDAKAN
+          </div>
+          <button class="btn-kemaskini"><i class="fas fa-edit"></i> Kemaskini</button>
+        </div>
+        <div class="notice-content">
+          <p>📢 <strong>MAKLUMAN GURU DATA:</strong><br>
+          Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.</p>
+          <p>Sila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.</p>
+        </div>
+      </div>
 
-    <div class="table-container">
-      <table id="studentTable">
-        <thead>
-          <!-- Header akan dijana automatik dari Google Sheets -->
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="5" style="text-align:center; padding: 30px;">Memuat turun data murid...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Cari nama murid atau kelas..." onkeyup="filterTable()">
+        <button class="btn-action btn-tambah"><i class="fas fa-user-plus"></i> Tambah Murid</button>
+        <button class="btn-action btn-muatturun"><i class="fas fa-file-download"></i> Muat Turun</button>
+        <button class="btn-action btn-arkib"><i class="fas fa-archive"></i> Arkib</button>
+      </div>
 
-    <div class="footer-text">
-      SK Pendidikan Khas Miri &copy; Hak Cipta Terpelihara
-    </div>
+      <!-- Jadual -->
+      <div class="table-card">
+        <table id="studentTable">
+          <thead>
+            <tr>
+              <th>Nama Murid</th>
+              <th>Kelas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="2" style="text-align:center; padding:30px;">Menyemak pangkalan data...</td></tr>
+          </tbody>
+        </table>
+      </div>
 
+    </div>
   </div>
 
   <!-- ================= SKRIP FUNGSI (DATABASE) ================= -->
   <script>
-    // Pautan CSV Google Sheets 
     const URL_GURU = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-vlBOQG_pelA8C9Nfb51agzdS_JyCBV0VJCfFWy-dZV7dvZp1AwQgkGGuSLxoViVHvzmjH0SfBbLD/pub?output=csv';
     const URL_MURID = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv';
 
-    // FUNGSI 1: Pengesahan Log Masuk Guru
+    // FUNGSI 1: Log Masuk
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const icInput = document.getElementById('ic_number').value.trim();
       const loginBtn = document.getElementById('loginBtn');
-      
-      loginBtn.disabled = true;
-      loginBtn.textContent = 'Menyemak Pangkalan Data...';
+      loginBtn.disabled = true; loginBtn.textContent = 'Menyemak...';
 
       try {
         const response = await fetch(URL_GURU);
         const csvData = await response.text();
         const rows = parseCSV(csvData);
-        
-        let isValid = false;
-        // Semak IC dalam Google Sheets
-        for(let i = 0; i < rows.length; i++) {
-          if(rows[i].some(cell => cell.trim() === icInput)) {
-            isValid = true;
-            break;
-          }
-        }
+        let isValid = rows.some(row => row.some(cell => cell.trim() === icInput));
 
         if(isValid) {
-          // Berjaya Log Masuk
           document.getElementById('loginView').style.display = 'none';
           document.getElementById('dashboardView').style.display = 'block';
-          document.getElementById('guruLog').textContent = "Guru ID: " + icInput;
-          
-          // Muat Turun Data Murid
           fetchSenaraiMurid(); 
         } else {
-          alert('RALAT: No. Kad Pengenalan tidak wujud di dalam sistem pangkalan data.');
+          alert('RALAT: No. Kad Pengenalan tidak wujud dalam sistem.');
         }
       } catch (error) {
-        alert('Gagal menyambung ke pangkalan data Google Sheets. Sila semak sambungan internet anda.');
+        alert('Gagal menyambung ke pangkalan data.');
       }
-
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Log Masuk';
+      loginBtn.disabled = false; loginBtn.textContent = 'Log Masuk';
     });
 
-
-    // FUNGSI 2: Tarik & Susun Senarai Murid
+    // FUNGSI 2: Tarik & Susun Data Murid mengikut paparan gambar
     async function fetchSenaraiMurid() {
-      const tableThead = document.querySelector('#studentTable thead');
       const tableTbody = document.querySelector('#studentTable tbody');
-
       try {
         const response = await fetch(URL_MURID);
         const csvData = await response.text();
         const rows = parseCSV(csvData);
 
-        if(rows.length === 0) return;
+        if(rows.length <= 1) {
+            tableTbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Tiada data dijumpai.</td></tr>';
+            return;
+        }
 
-        // 1. Bina Header (Baris Pertama CSV)
-        const headers = rows[0];
-        let theadHTML = '<tr>';
-        headers.forEach(h => {
-           theadHTML += `<th>${h}</th>`;
+        // Carian index kolum untuk "Nama Murid" dan "Kelas" dalam CSV anda
+        let namaIndex = 1; // Andaian asal jika CSV standard
+        let kelasIndex = 3; 
+        
+        // Cari index sebenar dari header (Baris 0)
+        rows[0].forEach((header, index) => {
+            const h = header.toLowerCase();
+            if(h.includes('nama')) namaIndex = index;
+            if(h.includes('kelas')) kelasIndex = index;
         });
-        theadHTML += '</tr>';
-        tableThead.innerHTML = theadHTML;
 
-        // 2. Bina Data Row (Baris Seterusnya)
         let tbodyHTML = '';
         for(let i = 1; i < rows.length; i++) {
           if(rows[i].length > 1 || rows[i][0] !== "") {
-            tbodyHTML += '<tr>';
+            const nama = rows[i][namaIndex] ? rows[i][namaIndex].toUpperCase() : '-';
+            const kelas = rows[i][kelasIndex] ? rows[i][kelasIndex].toUpperCase() : '-';
             
-            rows[i].forEach(col => {
-              // Jika data tertulis "Lengkap", tukar menjadi lencana hijau (badge)
-              if (col.trim().toLowerCase() === 'lengkap') {
-                tbodyHTML += `<td><span class="badge-lengkap">Lengkap</span></td>`;
-              } else {
-                tbodyHTML += `<td>${col}</td>`;
-              }
-            });
-            
-            tbodyHTML += '</tr>';
+            tbodyHTML += `
+              <tr>
+                <td>${nama}</td>
+                <td style="color:#6b7280;">${kelas}</td>
+              </tr>
+            `;
           }
         }
         tableTbody.innerHTML = tbodyHTML;
-
       } catch (error) {
-        tableTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat turun senarai murid. Sila muat semula halaman.</td></tr>';
+        tableTbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:red;">Gagal memuat turun senarai.</td></tr>';
       }
     }
 
-
-    // FUNGSI 3: Enjin Carian Jadual
+    // FUNGSI 3: Carian
     function filterTable() {
-      const input = document.getElementById("searchInput");
-      const filter = input.value.toUpperCase();
-      const table = document.getElementById("studentTable");
-      const tr = table.getElementsByTagName("tr");
-
-      for (let i = 1; i < tr.length; i++) {
-        let isMatch = false;
-        const td = tr[i].getElementsByTagName("td");
-        for (let j = 0; j < td.length; j++) {
-          if (td[j]) {
-            const txtValue = td[j].textContent || td[j].innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-              isMatch = true;
-              break;
-            }
-          }
-        }
-        tr[i].style.display = isMatch ? "" : "none";
-      }
+      const filter = document.getElementById("searchInput").value.toUpperCase();
+      const tr = document.querySelectorAll("#studentTable tbody tr");
+      tr.forEach(row => {
+        const text = row.textContent || row.innerText;
+        row.style.display = text.toUpperCase().includes(filter) ? "" : "none";
+      });
     }
 
-
-    // FUNGSI 4: Log Keluar Kembali Ke Paparan Asal
+    // FUNGSI 4: Log Keluar
     function logout() {
-      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('loginView').style.display = 'flex';
       document.getElementById('dashboardView').style.display = 'none';
       document.getElementById('ic_number').value = '';
-      document.getElementById("searchInput").value = '';
     }
 
-
-    // FUNGSI 5: Pembaca CSV (Parser)
+    // Pembaca CSV
     function parseCSV(str) {
-      const arr = [];
-      let quote = false;
-      let col = 0, row = 0;
+      const arr = []; let quote = false; let col = 0, row = 0;
       for (let c = 0; c < str.length; c++) {
         let cc = str[c], nc = str[c+1];
-        arr[row] = arr[row] || [];
-        arr[row][col] = arr[row][col] || '';
+        arr[row] = arr[row] || []; arr[row][col] = arr[row][col] || '';
         if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
         if (cc == '"') { quote = !quote; continue; }
         if (cc == ',' && !quote) { ++col; continue; }
@@ -474,6 +401,5 @@
       return arr;
     }
   </script>
-
 </body>
 </html>
