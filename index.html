@@ -179,11 +179,14 @@
 
   <script>
     document.getElementById('loginForm').addEventListener('submit', function(e) {
-      // Mengelakkan ralat HTTP ERROR 405
       e.preventDefault(); 
       
-      // Gantikan 'dashboard.html' dengan nama fail/pautan halaman utama anda selepas log masuk
-      window.location.href = 'dashboard.html'; 
+      // =========================================================================
+      // GANTIKAN URL DI BAWAH KEPADA PAUTAN SEBENAR HALAMAN SELEPAS LOG MASUK
+      // Contoh: 'https://docs.google.com/forms/d/e/...' atau 'halaman_utama.html'
+      // =========================================================================
+      
+      window.location.href = 'https://pautan-sebenar-anda.com'; 
     });
   </script>
 
