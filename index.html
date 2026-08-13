@@ -93,7 +93,7 @@
             const [noticeText, setNoticeText] = useState("Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.\n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.");
             const [tempNotice, setTempNotice] = useState("");
 
-            // State untuk borang tambah murid (Dikemaskini mengikut gambar rujukan)
+            // State untuk borang tambah murid
             const [newStudent, setNewStudent] = useState({ 
                 name: '', 
                 kelas: '',
@@ -203,6 +203,13 @@
 
             const handleArchive = () => {
                 alert("Fungsi Arkib sedang diselenggara.");
+            };
+
+            // FUNGSI BUTANG: Buka Fail Peribadi
+            const handleBukaFail = (student) => {
+                // Anda boleh tukar alert ini kepada pautan sistem sebenar nanti
+                // contoh: window.location.href = `/fail-peribadi.html?murid=${student.name}`;
+                alert(`Sedang membuka fail peribadi untuk: ${student.name}\n\n(Fungsi pautan ke sistem fail sebenar boleh diletakkan di sini)`);
             };
 
             // FUNGSI BUTANG: Tambah Murid (Simpan Sementara)
@@ -405,33 +412,36 @@
                         </div>
                     </div>
 
-                    {/* MODAL: Papar Maklumat Murid */}
+                    {/* MODAL: Papar Maklumat Murid (Dikemaskini mengikut gambar rujukan) */}
                     {selectedStudent && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-                                <div className="bg-[#2563eb] p-4 flex justify-between items-center text-white">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+                                <div className="bg-[#2563eb] p-5 flex justify-between items-center text-white">
                                     <h3 className="font-bold text-lg"><i className="fas fa-user-graduate mr-2"></i> Profil Murid</h3>
-                                    <button onClick={() => setSelectedStudent(null)} className="text-white hover:text-blue-200">
+                                    <button onClick={() => setSelectedStudent(null)} className="text-white hover:text-blue-200 focus:outline-none">
                                         <i className="fas fa-times text-xl"></i>
                                     </button>
                                 </div>
-                                <div className="p-6 space-y-4">
+                                <div className="p-6 space-y-6">
                                     <div>
-                                        <label className="text-sm text-gray-500 font-medium">Nama Penuh</label>
-                                        <div className="text-lg font-bold text-gray-800 uppercase">{selectedStudent.name}</div>
+                                        <label className="block text-sm font-semibold text-gray-500 mb-1">Nama Penuh</label>
+                                        <div className="text-xl font-extrabold text-gray-800 uppercase">{selectedStudent.name}</div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-sm text-gray-500 font-medium">Kelas</label>
-                                            <div className="text-md font-semibold text-gray-700 uppercase">{selectedStudent.kelas}</div>
+                                            <label className="block text-sm font-semibold text-gray-500 mb-1">Kelas</label>
+                                            <div className="text-lg font-bold text-gray-700 uppercase">{selectedStudent.kelas}</div>
                                         </div>
                                         <div>
-                                            <label className="text-sm text-gray-500 font-medium">Status Rekod</label>
-                                            <div className="text-md font-semibold text-green-600"><i className="fas fa-check-circle mr-1"></i> Aktif</div>
+                                            <label className="block text-sm font-semibold text-gray-500 mb-1">Status Rekod</label>
+                                            <div className="text-lg font-bold text-[#16a34a] flex items-center"><i className="fas fa-check-circle mr-2"></i> Aktif</div>
                                         </div>
                                     </div>
-                                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-4">
-                                        <button className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-200 transition-colors">
+                                    <div className="pt-5 border-t border-gray-100 flex justify-end mt-4">
+                                        <button 
+                                            onClick={() => handleBukaFail(selectedStudent)}
+                                            className="bg-[#dbeafe] text-[#2563eb] px-5 py-2.5 rounded-xl font-bold hover:bg-[#bfdbfe] transition-colors flex items-center focus:outline-none"
+                                        >
                                             <i className="fas fa-folder-open mr-2"></i> Buka Fail Peribadi
                                         </button>
                                     </div>
@@ -440,7 +450,7 @@
                         </div>
                     )}
 
-                    {/* MODAL: Tambah Murid (Rekaan baharu berdasarkan imej) */}
+                    {/* MODAL: Tambah Murid */}
                     {showAddModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
@@ -520,7 +530,7 @@
                                         </div>
                                     </div>
 
-                                    {/* Butang Batal & Simpan - Saiz Separuh-Separuh */}
+                                    {/* Butang Batal & Simpan */}
                                     <div className="pt-6 flex gap-4 mt-2">
                                         <button 
                                             type="button" 
