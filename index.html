@@ -155,7 +155,7 @@
     <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
 
     <!-- Borang Log Masuk -->
-    <form action="#" method="POST">
+    <form id="loginForm">
       <div class="form-group">
         <label for="ic_number">No. Kad Pengenalan Guru</label>
         <input 
@@ -176,6 +176,16 @@
       Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
     </p>
   </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      // Mengelakkan ralat HTTP ERROR 405
+      e.preventDefault(); 
+      
+      // Gantikan 'dashboard.html' dengan nama fail/pautan halaman utama anda selepas log masuk
+      window.location.href = 'dashboard.html'; 
+    });
+  </script>
 
 </body>
 </html>
