@@ -19,28 +19,28 @@
       align-items: center;
       min-height: 100vh;
       /* Latar Belakang sekolah.png */
-      background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
-                  url('sekolah.png') center/cover no-repeat fixed;
-      padding: 20px;
+      background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), 
+                  url('sekolah.png') center/cover no-repeat;
     }
 
-    /* Kad Utama */
-    .container {
+    /* Kad Utama Log Masuk */
+    .login-card {
       background-color: #f4f5f8;
       width: 100%;
-      max-width: 800px;
-      padding: 35px;
+      max-width: 440px;
+      padding: 40px 32px 32px;
       border-radius: 20px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
       text-align: center;
+      margin: 20px;
     }
 
-    /* Logo Bulat (logo.png) */
+    /* Bekas Logo Bulat (logo.png) */
     .logo-wrapper {
-      width: 80px;
-      height: 80px;
+      width: 85px;
+      height: 85px;
       border-radius: 50%;
-      margin: 0 auto 15px auto;
+      margin: 0 auto 20px auto;
       overflow: hidden;
       background-color: #ffffff;
       display: flex;
@@ -56,13 +56,13 @@
       object-fit: contain;
     }
 
-    /* Tajuk */
+    /* Tajuk & Sub-tajuk */
     .title {
       color: #111827;
       font-size: 22px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       text-transform: uppercase;
     }
 
@@ -71,16 +71,11 @@
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       text-transform: uppercase;
     }
 
-    /* Form Log Masuk */
-    .login-box {
-      max-width: 400px;
-      margin: 0 auto;
-    }
-
+    /* Borang Input */
     .form-group {
       text-align: left;
       margin-bottom: 20px;
@@ -102,6 +97,12 @@
       border-radius: 8px;
       outline: none;
       background-color: #ffffff;
+      color: #1f2937;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input::placeholder {
+      color: #9ca3af;
     }
 
     .form-group input:focus {
@@ -109,264 +110,92 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
-    /* Butang */
-    .btn {
+    /* Butang Log Masuk */
+    .btn-login {
       width: 100%;
       background-color: #2563eb;
       color: #ffffff;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       padding: 12px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, transform 0.1s;
+      margin-bottom: 24px;
     }
 
-    .btn:hover {
+    .btn-login:hover {
       background-color: #1d4ed8;
     }
 
-    .btn-logout {
-      background-color: #dc2626;
-      width: auto;
-      padding: 8px 18px;
-      font-size: 13px;
+    .btn-login:active {
+      transform: scale(0.99);
     }
 
-    .btn-logout:hover {
-      background-color: #b91c1c;
-    }
-
-    /* Bahagian Dashboard & Senarai Murid */
-    #dashboardSection {
-      display: none; /* Disembunyikan secara lalai */
-      text-align: left;
-    }
-
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e5e7eb;
-    }
-
-    .user-info {
-      font-size: 14px;
-      color: #374151;
-      font-weight: 600;
-    }
-
-    /* Carian Murid */
-    .search-box {
-      margin-bottom: 15px;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 10px 14px;
-      font-size: 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      outline: none;
-    }
-
-    /* Jadual Murid */
-    .table-responsive {
-      overflow-x: auto;
-      background-color: #ffffff;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      background-color: #f3f4f6;
-      color: #374151;
-      padding: 12px;
-      font-weight: 700;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    td {
-      padding: 12px;
-      border-bottom: 1px solid #f3f4f6;
-      color: #1f2937;
-    }
-
-    tr:hover {
-      background-color: #f9fafb;
-    }
-
-    .badge-status {
-      display: inline-block;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 6px;
-      background-color: #dcfce7;
-      color: #15803d;
-    }
-
+    /* Nota Kaki */
     .disclaimer {
       color: #6b7280;
       font-size: 11.5px;
-      margin-top: 20px;
-      text-align: center;
+      line-height: 1.5;
+      padding: 0 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    
-    <!-- ================= PAPARAN 1: LOG MASUK ================= -->
-    <div id="loginSection">
-      <div class="logo-wrapper">
-        <img src="logo.png" alt="Logo Sekolah" class="logo-img">
-      </div>
-
-      <h1 class="title">FAIL PERIBADI MURID</h1>
-      <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
-
-      <div class="login-box">
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="ic_number">No. Kad Pengenalan Guru</label>
-            <input 
-              type="text" 
-              id="ic_number" 
-              placeholder="Contoh: 810808135501" 
-              required 
-              autocomplete="off"
-            >
-          </div>
-          <button type="submit" class="btn">Log Masuk</button>
-        </form>
-      </div>
-
-      <p class="disclaimer">
-        Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
-      </p>
+  <div class="login-card">
+    <!-- Logo Sekolah Bulat -->
+    <div class="logo-wrapper">
+      <img src="logo.png" alt="Logo Sekolah" class="logo-img">
     </div>
 
-    <!-- ================= PAPARAN 2: SENARAI NAMA MURID ================= -->
-    <div id="dashboardSection">
-      <div class="dashboard-header">
-        <div>
-          <h2 class="title" style="font-size: 18px;">SENARAI FAIL PERIBADI MURID</h2>
-          <span class="user-info" id="guruLog">Guru: -</span>
-        </div>
-        <button class="btn btn-logout" id="logoutBtn">Log Keluar</button>
+    <!-- Tajuk Utama -->
+    <h1 class="title">FAIL PERIBADI MURID</h1>
+    <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
+
+    <!-- Borang Log Masuk -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="ic_number">No. Kad Pengenalan Guru</label>
+        <input 
+          type="text" 
+          id="ic_number" 
+          name="ic_number" 
+          placeholder="Contoh: 810808135501" 
+          required 
+          autocomplete="off"
+        >
       </div>
 
-      <!-- Kotak Carian -->
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Cari nama murid atau No. MyKid...">
-      </div>
+      <button type="submit" class="btn-login">Log Masuk</button>
+    </form>
 
-      <!-- Jadual Senarai Murid -->
-      <div class="table-responsive">
-        <table id="studentTable">
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Nama Murid</th>
-              <th>No. MyKid / OKU</th>
-              <th>Kelas</th>
-              <th>Status Fail</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Contoh Data Murid (Boleh Tambah/Edit Di Sini) -->
-            <tr>
-              <td>1</td>
-              <td><strong>Ahmad Rayyan Bin Mohd Zaki</strong></td>
-              <td>150212-13-5543</td>
-              <td>1 PK Bestari</td>
-              <td><span class="badge-status">Lengkap</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><strong>Nur Aisyah Humaira Binti Azman</strong></td>
-              <td>160504-13-6112</td>
-              <td>2 PK Cerdas</td>
-              <td><span class="badge-status">Lengkap</span></td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td><strong>Ethan Lim Wei Jun</strong></td>
-              <td>141120-13-8891</td>
-              <td>4 PK Pintar</td>
-              <td><span class="badge-status">Lengkap</span></td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td><strong>Mohammad Danish Bin Abdullah</strong></td>
-              <td>150830-13-0021</td>
-              <td>3 PK Maju</td>
-              <td><span class="badge-status">Lengkap</span></td>
-            </tr>
-            <tr>
-              <td>5</td>
-              <td><strong>Siti Sarah Binti Ismail</strong></td>
-              <td>170115-13-7744</td>
-              <td>1 PK Bestari</td>
-              <td><span class="badge-status">Lengkap</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p class="disclaimer">SK Pendidikan Khas Miri &copy; Hak Cipta Terpelihara</p>
-    </div>
-
+    <!-- Nota Kaki Kerahsiaan -->
+    <p class="disclaimer">
+      Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
+    </p>
   </div>
 
   <script>
-    const loginForm = document.getElementById('loginForm');
-    const loginSection = document.getElementById('loginSection');
-    const dashboardSection = document.getElementById('dashboardSection');
-    const guruLog = document.getElementById('guruLog');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const searchInput = document.getElementById('searchInput');
+    // =========================================================================
+    // ISI PAUTAN (URL) SEBENAR SYSTEM / GOOGLE APPS SCRIPT ANDA DI SINI:
+    // Contoh: 'https://script.google.com/macros/s/AKfycbx.../exec'
+    // =========================================================================
+    const PAUTAN_SISTEM_ASAL = 'MASUKKAN_PAUTAN_DATABASE_SEBENAR_DI_SINI';
 
-    // 1. Fungsi Log Masuk
-    loginForm.addEventListener('submit', function(e) {
-      e.preventDefault(); // Elak refresh/ralat 404/405
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault(); 
       
-      const icVal = document.getElementById('ic_number').value;
-      if(icVal) {
-        guruLog.textContent = "Guru ID: " + icVal;
-        loginSection.style.display = 'none';
-        dashboardSection.style.display = 'block';
+      const icInput = document.getElementById('ic_number').value;
+
+      if (PAUTAN_SISTEM_ASAL.includes('MASUKKAN_PAUTAN')) {
+        alert('Sila gantikan MASUKKAN_PAUTAN_DATABASE_SEBENAR_DI_SINI dalam kod HTML dengan pautan asal sistem anda.');
+        return;
       }
-    });
 
-    // 2. Fungsi Log Keluar
-    logoutBtn.addEventListener('click', function() {
-      dashboardSection.style.display = 'none';
-      loginSection.style.display = 'block';
-      document.getElementById('ic_number').value = '';
-    });
-
-    // 3. Fungsi Carian Murid Pantas
-    searchInput.addEventListener('keyup', function() {
-      const filter = searchInput.value.toLowerCase();
-      const rows = document.querySelectorAll('#studentTable tbody tr');
-
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
-      });
+      // Membuka pautan sistem asal bersama parameter No. KP Guru
+      window.location.href = PAUTAN_SISTEM_ASAL + '?ic=' + encodeURIComponent(icInput); 
     });
   </script>
 
