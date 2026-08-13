@@ -349,7 +349,7 @@
             if (viewingFile) {
                 return (
                     <div className="min-h-screen bg-[#f8f9fc]">
-                        <!-- Pengepala Atas Pasangan Gambar -->
+                        {/* Pengepala Atas Pasangan Gambar */}
                         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
                             <div className="flex-1">
                                 <button onClick={() => setViewingFile(null)} className="text-gray-700 hover:text-black font-semibold text-base flex items-center gap-1.5 transition-colors">
@@ -374,7 +374,7 @@
                             </div>
                         </div>
 
-                        <!-- Bar Navigasi Tab (Rekod Peribadi / Kandungan Fail) -->
+                        {/* Bar Navigasi Tab (Rekod Peribadi / Kandungan Fail) */}
                         <div className="bg-white border-b border-gray-200 flex justify-center gap-12 shadow-sm">
                             <button 
                                 onClick={() => setActiveTab('rekod')}
@@ -398,7 +398,7 @@
                             </button>
                         </div>
 
-                        <!-- Kandungan mengikut Tab yang dipilih -->
+                        {/* Kandungan mengikut Tab yang dipilih */}
                         <div className="max-w-5xl mx-auto mt-6 px-4 pb-12">
                             {activeTab === 'rekod' ? (
                                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
