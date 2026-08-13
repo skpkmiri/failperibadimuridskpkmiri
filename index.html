@@ -67,6 +67,9 @@
             const [icNumber, setIcNumber] = useState('');
             const [error, setError] = useState('');
             const [loading, setLoading] = useState(true);
+            
+            // State untuk menyimpan data murid dari CSV
+            const [students, setStudents] = useState([]);
 
             // Senarai IC kekal
             const [authorizedIcs, setAuthorizedIcs] = useState([
@@ -79,20 +82,59 @@
             ]);
 
             useEffect(() => {
-                // Tarik IC dari CSV Google Sheets
+                // Tarik CSV Google Sheets untuk IC dan Nama Pelajar
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT-vlBOQG_pelA8C9Nfb51agzdS_JyCBV0VJCfFWy-dZV7dvZp1AwQgkGGuSLxoViVHvzmjH0SfBbLD/pub?output=csv";
                 
                 fetch(fetchCsvUrl)
                     .then(response => response.text())
                     .then(csvText => {
+                        // 1. Ekstrak senarai IC yang sah
                         const textTanpaSengkang = csvText.replace(/-/g, '');
                         const icDariCsv = textTanpaSengkang.match(/\b\d{12}\b/g) || [];
                         setAuthorizedIcs(prevIcs => {
                             const gabungan = [...prevIcs, ...icDariCsv];
                             return [...new Set(gabungan)];
                         });
+
+                        // 2. Ekstrak senarai Nama dan Kelas untuk jadual
+                        const rows = csvText.split('\n').filter(row => row.trim() !== '');
+                        if (rows.length > 0) {
+                            const headers = rows[0].split(',').map(h => h.trim().toUpperCase());
+                            
+                            // Cari lajur nama dan kelas (Jika tiada, default kepada lajur indeks 1 dan 3)
+                            let nameCol = headers.findIndex(h => h.includes('NAMA'));
+                            let classCol = headers.findIndex(h => h.includes('KELAS') || h.includes('TAHUN') || h.includes('TINGKATAN'));
+                            
+                            if (nameCol === -1) nameCol = 1;
+                            if (classCol === -1) classCol = headers.length > 3 ? 3 : 2;
+
+                            const parsedStudents = [];
+                            
+                            // Mula dari baris ke-2 (mengabaikan tajuk header)
+                            for (let i = 1; i < rows.length; i++) {
+                                // Fungsi pisah CSV yang mengendalikan pembuka kata ("") dengan selamat
+                                const arr = [];
+                                let inQuote = false;
+                                let val = '';
+                                for (let char of rows[i]) {
+                                    if (char === '"') inQuote = !inQuote;
+                                    else if (char === ',' && !inQuote) { arr.push(val.trim()); val = ''; }
+                                    else val += char;
+                                }
+                                arr.push(val.trim()); 
+                                
+                                const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '-';
+                                const kelasMurid = arr[classCol] ? arr[classCol].replace(/"/g, '') : '-';
+                                
+                                // Hanya simpan jika terdapat rekod nama yang sah
+                                if (namaMurid && namaMurid !== '-') {
+                                    parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
+                                }
+                            }
+                            setStudents(parsedStudents);
+                        }
                     })
-                    .catch(err => console.error("Ralat memuat turun senarai IC:", err));
+                    .catch(err => console.error("Ralat memuat turun data CSV:", err));
 
                 const checkFirebase = setInterval(() => {
                     if (window.firebaseAuth) {
@@ -213,7 +255,7 @@
                         backgroundBlendMode: 'overlay'
                     }}
                 >
-                    {/* Header Banner Biru Gelap */}
+                    {/* Header Banner */}
                     <nav className="bg-[#2a459b] shadow-md">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                             <div className="flex justify-between items-center">
@@ -297,14 +339,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr className="border-b border-gray-50 hover:bg-gray-50">
-                                        <td className="py-4 px-6 font-bold text-gray-800">FAVIAN CARLOS MELCOM</td>
-                                        <td className="py-4 px-6 text-gray-500">1BD</td>
-                                    </tr>
-                                    <tr className="hover:bg-gray-50">
-                                        <td className="py-4 px-6 font-bold text-gray-800">HANNA LUMI RAJA BINTI ABDULLAH</td>
-                                        <td className="py-4 px-6 text-gray-500">1BD</td>
-                                    </tr>
+                                    {students.length > 0 ? (
+                                        students.map((student, index) => (
+                                            <tr key={index} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                                <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
+                                                <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="2" className="py-8 px-6 text-center text-gray-500">
+                                                <i className="fas fa-spinner fa-spin mr-2"></i> Sedang memuatkan senarai nama atau tiada rekod dijumpai...
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
