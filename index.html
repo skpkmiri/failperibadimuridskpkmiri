@@ -155,7 +155,7 @@
     <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
 
     <!-- Borang Log Masuk -->
-    <form id="loginForm">
+    <form id="loginForm" method="GET" action="">
       <div class="form-group">
         <label for="ic_number">No. Kad Pengenalan Guru</label>
         <input 
@@ -176,28 +176,6 @@
       Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
     </p>
   </div>
-
-  <script>
-    // =========================================================================
-    // ISI PAUTAN (URL) SEBENAR SYSTEM / GOOGLE APPS SCRIPT ANDA DI SINI:
-    // Contoh: 'https://script.google.com/macros/s/AKfycbx.../exec'
-    // =========================================================================
-    const PAUTAN_SISTEM_ASAL = 'MASUKKAN_PAUTAN_DATABASE_SEBENAR_DI_SINI';
-
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault(); 
-      
-      const icInput = document.getElementById('ic_number').value;
-
-      if (PAUTAN_SISTEM_ASAL.includes('MASUKKAN_PAUTAN')) {
-        alert('Sila gantikan MASUKKAN_PAUTAN_DATABASE_SEBENAR_DI_SINI dalam kod HTML dengan pautan asal sistem anda.');
-        return;
-      }
-
-      // Membuka pautan sistem asal bersama parameter No. KP Guru
-      window.location.href = PAUTAN_SISTEM_ASAL + '?ic=' + encodeURIComponent(icInput); 
-    });
-  </script>
 
 </body>
 </html>
