@@ -24,8 +24,14 @@
             padding: 0;
             background-color: #f3f4f6;
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        /* Scrollbar untuk modal/popup */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +62,8 @@
         window.firebaseDb = db;
         window.signInAnonymously = signInAnonymously;
         window.onAuthStateChanged = onAuthStateChanged;
+        window.collection = collection;
+        window.onSnapshot = onSnapshot;
     </script>
 
     <!-- Skrip Aplikasi React -->
@@ -63,7 +71,7 @@
         const { useState, useEffect } = React;
 
         function App() {
-            // State Log Masuk
+            // State Log Masuk & Loading
             const [isAuthenticated, setIsAuthenticated] = useState(false);
             const [icNumber, setIcNumber] = useState('');
             const [error, setError] = useState('');
@@ -77,19 +85,20 @@
 
             // State Fungsi Interaktif
             const [searchTerm, setSearchTerm] = useState('');
-            const [viewingFile, setViewingFile] = useState(null); // Mengawal Paparan Penuh
+            const [viewingFile, setViewingFile] = useState(null); // Ganti modal kecil dengan paparan penuh terus
             
             const [showAddModal, setShowAddModal] = useState(false);
             const [isEditingNotice, setIsEditingNotice] = useState(false);
-            const [noticeText, setNoticeText] = useState("Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.");
+            const [noticeText, setNoticeText] = useState("Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.\n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.");
             const [tempNotice, setTempNotice] = useState("");
 
-            const [newStudent, setNewStudent] = useState({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
+            const [newStudent, setNewStudent] = useState({ 
+                name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' 
+            });
 
-            // Pengambilan Data
             useEffect(() => {
+                // 1. Muat turun data CSV
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv";
-                
                 fetch(fetchCsvUrl)
                     .then(response => response.text())
                     .then(csvText => {
@@ -113,35 +122,70 @@
                                 const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '';
                                 const kelasMurid = arr[classCol] ? arr[classCol].replace(/"/g, '') : '-';
                                 
-                                if (namaMurid && isNaN(namaMurid)) {
+                                if (namaMurid && isNaN(namaMurid) && namaMurid !== '-') {
                                     parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
                                 }
                             }
                             setStudents(parsedStudents);
                         }
                     })
-                    .catch(err => console.error("Ralat muat turun CSV:", err));
+                    .catch(err => console.error("Ralat memuat turun data CSV:", err));
+
+                // 2. Sambungan Firebase berserta Error Handling (Penyelesaian Isu Loading Tersangkut)
+                const fallbackTimer = setTimeout(() => {
+                    setLoading(false); // Paksa buang loading screen selepas 3 saat walaupun Firebase gagal
+                }, 3000);
 
                 const checkFirebase = setInterval(() => {
                     if (window.firebaseAuth) {
                         clearInterval(checkFirebase);
-                        window.signInAnonymously(window.firebaseAuth).then(() => {
-                            window.onAuthStateChanged(window.firebaseAuth, (user) => { if (user) setLoading(false); });
-                        });
+                        window.signInAnonymously(window.firebaseAuth)
+                            .then(() => {
+                                window.onAuthStateChanged(window.firebaseAuth, (user) => {
+                                    clearTimeout(fallbackTimer);
+                                    setLoading(false);
+                                });
+                            })
+                            .catch((error) => {
+                                console.error("Ralat Firebase:", error);
+                                clearTimeout(fallbackTimer);
+                                setLoading(false); // Membenarkan aplikasi diteruskan walaupun Firebase ralat
+                            });
                     }
                 }, 100);
-                return () => clearInterval(checkFirebase);
+
+                return () => {
+                    clearInterval(checkFirebase);
+                    clearTimeout(fallbackTimer);
+                };
             }, []);
 
-            // Log Masuk
             const handleLogin = (e) => {
                 e.preventDefault();
                 const cleanInput = icNumber.replace(/-/g, '');
-                if (authorizedIcs.includes(cleanInput)) { setIsAuthenticated(true); setError(''); } 
-                else { setError('No. KP tidak sah atau tiada dalam rekod.'); }
+                if (authorizedIcs.includes(cleanInput)) {
+                    setIsAuthenticated(true); setError('');
+                } else {
+                    setError('Nombor Kad Pengenalan tidak sah atau tiada dalam rekod.');
+                }
             };
 
-            // Tambah Murid
+            const handleDownload = () => {
+                const csvContent = "data:text/csv;charset=utf-8,Nama Murid,Kelas\n" + 
+                                   students.map(e => `"${e.name}","${e.kelas}"`).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "Senarai_Murid.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const handleArchive = () => {
+                alert("Fungsi Arkib sedang diselenggara.");
+            };
+
             const submitNewStudent = (e) => {
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
@@ -157,18 +201,48 @@
             );
 
             // Skrin Loading
-            if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><i className="fas fa-spinner fa-spin text-3xl text-blue-600"></i></div>;
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                        <div className="text-xl font-semibold text-gray-600 flex flex-col items-center">
+                            <i className="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                            Memuatkan Sistem...
+                        </div>
+                    </div>
+                );
+            }
 
             // Skrin Log Masuk
             if (!isAuthenticated) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: 'rgba(255, 255, 255, 0.7)', backgroundBlendMode: 'overlay' }}>
+                    <div className="min-h-screen flex items-center justify-center px-4" 
+                         style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(255, 255, 255, 0.7)', backgroundBlendMode: 'overlay' }}>
                         <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
-                            <h1 className="text-2xl font-bold text-center mb-6">Fail Peribadi Murid</h1>
-                            <form onSubmit={handleLogin} className="space-y-4">
-                                <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nombor Kad Pengenalan" required />
-                                {error && <div className="text-red-500 text-sm"><i className="fas fa-exclamation-circle mr-1"></i> {error}</div>}
-                                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Log Masuk</button>
+                            <div className="text-center mb-8">
+                                <div className="flex justify-center mb-4">
+                                    <img src="logo.png" alt="Logo Sekolah" className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg bg-gray-50" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Logo"; }} />
+                                </div>
+                                <h1 className="text-2xl font-bold text-gray-800">Fail Peribadi Murid</h1>
+                                <p className="text-gray-500 mt-2">Sila log masuk untuk mengakses rekod</p>
+                            </div>
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombor Kad Pengenalan</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i className="fas fa-id-card text-gray-400"></i>
+                                        </div>
+                                        <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Contoh: 010203145678" required />
+                                    </div>
+                                </div>
+                                {error && (
+                                    <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg flex items-center">
+                                        <i className="fas fa-exclamation-circle mr-2"></i>{error}
+                                    </div>
+                                )}
+                                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center">
+                                    Log Masuk <i className="fas fa-arrow-right ml-2"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -253,40 +327,121 @@
             // HALAMAN UTAMA (DASHBOARD)
             // ==========================================
             return (
-                <div className="min-h-screen relative" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundColor: 'rgba(243, 244, 246, 0.95)', backgroundBlendMode: 'overlay' }}>
-                    <nav className="bg-[#2a459b] shadow-md relative z-10 p-4">
-                        <div className="max-w-7xl mx-auto flex justify-between items-center text-white">
-                            <h1 className="text-xl font-bold uppercase">Fail Peribadi Murid</h1>
-                            <button onClick={() => setIsAuthenticated(false)} className="hover:text-gray-200"><i className="fas fa-sign-out-alt mr-2"></i> Log Keluar</button>
+                <div className="min-h-screen relative" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundColor: 'rgba(243, 244, 246, 0.9)', backgroundBlendMode: 'overlay' }}>
+                    
+                    {/* Header Banner */}
+                    <nav className="bg-[#2a459b] shadow-md relative z-10">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide uppercase">Fail Peribadi Murid</h1>
+                                    <p className="text-blue-100 text-sm mt-1 uppercase">SK Pendidikan Khas Miri</p>
+                                </div>
+                                <button onClick={() => { setIsAuthenticated(false); setIcNumber(''); }} className="text-white hover:text-blue-200 font-medium px-4 py-2 transition-colors flex items-center">
+                                    <i className="fas fa-sign-out-alt mr-2"></i> Log Keluar
+                                </button>
+                            </div>
                         </div>
                     </nav>
 
-                    <div className="max-w-7xl mx-auto px-4 mt-6 pb-20 relative z-10">
-                        {/* Bar Carian & Butang Tambah */}
-                        <div className="flex flex-col md:flex-row gap-4 mb-6">
-                            <div className="flex-grow relative">
-                                <i className="fas fa-search absolute left-4 top-4 text-gray-400"></i>
-                                <input type="text" placeholder="Cari nama atau kelas..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-11 pr-5 py-3 rounded-lg border-none shadow-sm focus:ring-2 focus:ring-blue-500" />
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20 relative z-10">
+                        
+                        {/* Seksyen Makluman */}
+                        <div className="bg-[#f0f4ff] rounded-xl border border-blue-200 p-5 mb-6 shadow-sm">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center space-x-4">
+                                    <div className="bg-[#dfe6ff] text-blue-700 rounded-lg w-12 h-12 flex items-center justify-center text-xl shadow-sm">
+                                        <i className="fas fa-bullhorn"></i>
+                                    </div>
+                                    <h2 className="text-[#1a3673] font-bold text-lg">PAPAN MAKLUMAN / TINDAKAN</h2>
+                                </div>
+                                <button 
+                                    onClick={() => { setTempNotice(noticeText); setIsEditingNotice(!isEditingNotice); }}
+                                    className="bg-[#dfe6ff] text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center"
+                                >
+                                    <i className={isEditingNotice ? "fas fa-times mr-2" : "fas fa-edit mr-2"}></i> 
+                                    {isEditingNotice ? "Batal" : "Kemaskini"}
+                                </button>
                             </div>
-                            <button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-bold shadow-sm">
-                                <i className="fas fa-user-plus mr-2"></i> Tambah Murid
-                            </button>
+                            
+                            <div className="bg-white rounded-lg p-5 border border-blue-50">
+                                <h3 className="font-bold text-[#1a3673] flex items-center mb-2">
+                                    <span className="text-pink-600 mr-2"><i className="fas fa-bullhorn"></i></span> 
+                                    MAKLUMAN GURU DATA:
+                                </h3>
+                                
+                                {isEditingNotice ? (
+                                    <div className="mt-3">
+                                        <textarea 
+                                            className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none custom-scrollbar"
+                                            rows="4"
+                                            value={tempNotice}
+                                            onChange={(e) => setTempNotice(e.target.value)}
+                                        ></textarea>
+                                        <div className="mt-3 flex justify-end">
+                                            <button 
+                                                onClick={() => { setNoticeText(tempNotice); setIsEditingNotice(false); }}
+                                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition-colors"
+                                            >
+                                                Simpan Makluman
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-[#1a3673] font-medium leading-relaxed whitespace-pre-wrap">
+                                        {noticeText}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Jadual Utama */}
-                        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                        {/* Bar Carian & Butang Tindakan */}
+                        <div className="flex flex-col md:flex-row gap-4 mb-6">
+                            <div className="flex-grow">
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i className="fas fa-search text-gray-400"></i>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Cari nama murid atau kelas..." 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full h-12 pl-11 pr-5 rounded-lg border-none shadow-sm focus:ring-2 focus:ring-blue-500 text-gray-700"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
+                                <button onClick={() => setShowAddModal(true)} className="bg-[#2563eb] hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center whitespace-nowrap">
+                                    <i className="fas fa-user-plus mr-2"></i> Tambah Murid
+                                </button>
+                                <button onClick={handleDownload} className="bg-[#16a34a] hover:bg-green-700 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center whitespace-nowrap">
+                                    <i className="fas fa-download mr-2"></i> Muat Turun
+                                </button>
+                                <button onClick={handleArchive} className="bg-[#374151] hover:bg-gray-800 text-white px-5 py-3 rounded-lg font-medium shadow-sm transition-colors flex items-center whitespace-nowrap">
+                                    <i className="fas fa-archive mr-2"></i> Arkib
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Jadual Nama Murid */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-10">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-gray-50 border-b">
+                                <thead className="bg-white border-b border-gray-100">
                                     <tr>
-                                        <th className="py-4 px-6 font-bold text-gray-600">Nama Murid</th>
-                                        <th className="py-4 px-6 font-bold text-gray-600 w-48">Kelas</th>
+                                        <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Nama Murid</th>
+                                        <th className="py-4 px-6 font-semibold text-gray-600 text-sm w-48">Kelas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((student, index) => (
-                                            // INI ADALAH FUNGSI YANG DIUBAH: Terus buka fail penuh bila baris diklik
-                                            <tr key={index} onClick={() => setViewingFile(student)} className="border-b hover:bg-blue-50 cursor-pointer">
+                                            // Terus buka halaman penuh bila baris ditekan
+                                            <tr 
+                                                key={index} 
+                                                onClick={() => setViewingFile(student)}
+                                                className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors"
+                                            >
                                                 <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
                                                 <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
                                             </tr>
@@ -294,7 +449,11 @@
                                     ) : (
                                         <tr>
                                             <td colSpan="2" className="py-8 px-6 text-center text-gray-500">
-                                                Tiada rekod dijumpai.
+                                                {searchTerm ? (
+                                                    <span><i className="fas fa-search-minus mr-2"></i> Tiada padanan dijumpai untuk "{searchTerm}"</span>
+                                                ) : (
+                                                    <span><i className="fas fa-spinner fa-spin mr-2"></i> Sedang memuatkan senarai nama atau tiada rekod...</span>
+                                                )}
                                             </td>
                                         </tr>
                                     )}
@@ -303,20 +462,89 @@
                         </div>
                     </div>
 
-                    {/* MODAL TAMBAH MURID */}
+                    {/* MODAL: Tambah Murid */}
                     {showAddModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
                                 <div className="bg-[#2563eb] p-5 flex justify-between items-center text-white">
-                                    <h3 className="font-bold text-lg">Tambah Murid</h3>
-                                    <button onClick={() => setShowAddModal(false)}><i className="fas fa-times text-xl"></i></button>
+                                    <h3 className="font-bold text-lg flex items-center">
+                                        <i className="fas fa-user-plus mr-2"></i> Tambah Murid Baharu
+                                    </h3>
+                                    <button onClick={() => setShowAddModal(false)} className="text-white hover:text-blue-200 focus:outline-none">
+                                        <i className="fas fa-times text-xl"></i>
+                                    </button>
                                 </div>
-                                <form onSubmit={submitNewStudent} className="p-6 space-y-4">
-                                    <input type="text" required value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} className="w-full px-4 py-2 border rounded-xl" placeholder="Nama Penuh" />
-                                    <input type="text" required value={newStudent.kelas} onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})} className="w-full px-4 py-2 border rounded-xl" placeholder="Kelas" />
-                                    <div className="flex gap-4 pt-4">
-                                        <button type="button" onClick={() => setShowAddModal(false)} className="w-1/2 py-3 bg-gray-100 rounded-xl font-bold">Batal</button>
-                                        <button type="submit" className="w-1/2 py-3 bg-blue-600 text-white rounded-xl font-bold">Simpan</button>
+                                <form onSubmit={submitNewStudent} className="p-6">
+                                    <div className="space-y-5">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Penuh Murid</label>
+                                            <input 
+                                                type="text" required
+                                                value={newStudent.name} 
+                                                onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                placeholder="CONTOH: AHMAD BIN ALI"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kelas</label>
+                                                <input 
+                                                    type="text" required
+                                                    value={newStudent.kelas} 
+                                                    onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                    placeholder="CONTOH: 1BD"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Darjah / Tahun</label>
+                                                <input 
+                                                    type="text" required
+                                                    value={newStudent.darjah} 
+                                                    onChange={(e) => setNewStudent({...newStudent, darjah: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                    placeholder="CONTOH: 1"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tahun Kemasukan</label>
+                                                <input 
+                                                    type="number" required
+                                                    value={newStudent.tahunMasuk} 
+                                                    onChange={(e) => setNewStudent({...newStudent, tahunMasuk: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="2026"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Guru Kelas</label>
+                                                <input 
+                                                    type="text"
+                                                    value={newStudent.guruKelas} 
+                                                    onChange={(e) => setNewStudent({...newStudent, guruKelas: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="Opsional"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="pt-6 flex gap-4 mt-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowAddModal(false)} 
+                                            className="w-1/2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors focus:outline-none"
+                                        >
+                                            Batal
+                                        </button>
+                                        <button 
+                                            type="submit" 
+                                            className="w-1/2 py-3 bg-[#2563eb] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors focus:outline-none"
+                                        >
+                                            Simpan Murid
+                                        </button>
                                     </div>
                                 </form>
                             </div>
