@@ -82,7 +82,7 @@
             ]);
 
             useEffect(() => {
-                // Tarik CSV Google Sheets untuk IC dan Nama Pelajar (URL TERBARU)
+                // Tarik CSV Google Sheets untuk IC dan Nama Pelajar
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv";
                 
                 fetch(fetchCsvUrl)
@@ -101,33 +101,66 @@
                         if (rows.length > 0) {
                             const headers = rows[0].split(',').map(h => h.trim().toUpperCase());
                             
-                            // Cari lajur nama dan kelas (Jika tiada, default kepada lajur indeks 1 dan 3)
-                            let nameCol = headers.findIndex(h => h.includes('NAMA'));
-                            let classCol = headers.findIndex(h => h.includes('KELAS') || h.includes('TAHUN') || h.includes('TINGKATAN'));
+                            let nameCol = -1;
+                            let classCol = -1;
                             
-                            if (nameCol === -1) nameCol = 1;
-                            if (classCol === -1) classCol = headers.length > 3 ? 3 : 2;
+                            // Cari lajur berdasarkan tajuk header
+                            for (let i = 0; i < headers.length; i++) {
+                                if (headers[i].includes('NAMA') || headers[i].includes('MURID')) nameCol = i;
+                                else if (headers[i].includes('KELAS') || headers[i].includes('TAHUN') || headers[i].includes('TINGKATAN') || headers[i].includes('PROGRAM')) classCol = i;
+                            }
 
-                            const parsedStudents = [];
-                            
-                            // Mula dari baris ke-2 (mengabaikan tajuk header)
-                            for (let i = 1; i < rows.length; i++) {
-                                // Fungsi pisah CSV yang mengendalikan pembuka kata ("") dengan selamat
+                            // Fungsi pisah CSV yang mengendalikan pembuka kata ("") dengan selamat
+                            const parseCSVRow = (row) => {
                                 const arr = [];
                                 let inQuote = false;
                                 let val = '';
-                                for (let char of rows[i]) {
+                                for (let char of row) {
                                     if (char === '"') inQuote = !inQuote;
                                     else if (char === ',' && !inQuote) { arr.push(val.trim()); val = ''; }
                                     else val += char;
                                 }
-                                arr.push(val.trim()); 
+                                arr.push(val.trim());
+                                return arr;
+                            };
+
+                            // Jika tajuk tidak dijumpai, gunakan logik tekaan pada baris pertama data
+                            if (rows.length > 1 && (nameCol === -1 || classCol === -1)) {
+                                const firstDataRow = parseCSVRow(rows[1]);
                                 
-                                const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '-';
+                                for (let i = 0; i < firstDataRow.length; i++) {
+                                    let val = firstDataRow[i].replace(/"/g, '');
+                                    if (!val || val === '') continue;
+                                    
+                                    // Abaikan jika ia adalah IC atau nombor tulen
+                                    if (/^[\d-]+$/.test(val)) continue;
+                                    
+                                    // Jika teks agak panjang, anggap sebagai Nama Murid
+                                    if (nameCol === -1 && val.length > 10) {
+                                        nameCol = i;
+                                    }
+                                    // Jika teks pendek, anggap sebagai Kelas (Contoh: "1BD")
+                                    else if (classCol === -1 && val.length > 0 && val.length <= 15 && i !== nameCol) {
+                                        classCol = i;
+                                    }
+                                }
+                            }
+                            
+                            // Fallback keselamatan terakhir
+                            if (nameCol === -1) nameCol = 0;
+                            if (classCol === -1) classCol = (nameCol === 0) ? 1 : 0;
+
+                            const parsedStudents = [];
+                            
+                            // Mula membaca dari baris ke-2 (mengabaikan tajuk header)
+                            for (let i = 1; i < rows.length; i++) {
+                                const arr = parseCSVRow(rows[i]);
+                                
+                                const namaMurid = arr[nameCol] ? arr[nameCol].replace(/"/g, '') : '';
                                 const kelasMurid = arr[classCol] ? arr[classCol].replace(/"/g, '') : '-';
                                 
-                                // Hanya simpan jika terdapat rekod nama yang sah
-                                if (namaMurid && namaMurid !== '-') {
+                                // Hanya simpan jika terdapat rekod nama yang sah dan bukan nombor (contohnya terambil IC)
+                                if (namaMurid && namaMurid !== '-' && isNaN(namaMurid)) {
                                     parsedStudents.push({ name: namaMurid, kelas: kelasMurid });
                                 }
                             }
