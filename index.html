@@ -23,11 +23,11 @@
                   url('sekolah.png') center/cover no-repeat;
     }
 
-    /* Kad Utama Log Masuk */
-    .login-card {
+    /* Kad Utama */
+    .card {
       background-color: #f4f5f8;
       width: 100%;
-      max-width: 440px;
+      max-width: 460px;
       padding: 40px 32px 32px;
       border-radius: 20px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
@@ -35,7 +35,7 @@
       margin: 20px;
     }
 
-    /* Bekas Logo Bulat (logo.png) */
+    /* Logo Bulat (logo.png) */
     .logo-wrapper {
       width: 85px;
       height: 85px;
@@ -101,17 +101,13 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .form-group input::placeholder {
-      color: #9ca3af;
-    }
-
     .form-group input:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
-    /* Butang Log Masuk */
-    .btn-login {
+    /* Butang */
+    .btn {
       width: 100%;
       background-color: #2563eb;
       color: #ffffff;
@@ -122,15 +118,23 @@
       border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.2s, transform 0.1s;
-      margin-bottom: 24px;
     }
 
-    .btn-login:hover {
+    .btn:hover {
       background-color: #1d4ed8;
     }
 
-    .btn-login:active {
+    .btn:active {
       transform: scale(0.99);
+    }
+
+    .btn-logout {
+      background-color: #dc2626;
+      margin-top: 20px;
+    }
+
+    .btn-logout:hover {
+      background-color: #b91c1c;
     }
 
     /* Nota Kaki */
@@ -139,22 +143,52 @@
       font-size: 11.5px;
       line-height: 1.5;
       padding: 0 10px;
+      margin-top: 24px;
+    }
+
+    /* Bahagian Paparan Utama (Dashboard) */
+    #dashboardView {
+      display: none; /* Disembunyikan secara lalai */
+    }
+
+    .dashboard-content {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 10px;
+    }
+
+    .user-badge {
+      display: inline-block;
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .info-text {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
 
-  <div class="login-card">
-    <!-- Logo Sekolah Bulat -->
+  <!-- PAPARAN 1: BENTUK LOG MASUK -->
+  <div class="card" id="loginView">
     <div class="logo-wrapper">
       <img src="logo.png" alt="Logo Sekolah" class="logo-img">
     </div>
 
-    <!-- Tajuk Utama -->
     <h1 class="title">FAIL PERIBADI MURID</h1>
     <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
 
-    <!-- Borang Log Masuk -->
     <form id="loginForm">
       <div class="form-group">
         <label for="ic_number">No. Kad Pengenalan Guru</label>
@@ -168,25 +202,62 @@
         >
       </div>
 
-      <button type="submit" class="btn-login">Log Masuk</button>
+      <button type="submit" class="btn">Log Masuk</button>
     </form>
 
-    <!-- Nota Kaki Kerahsiaan -->
     <p class="disclaimer">
       Sistem maklumat sulit. Akses terhad kepada guru yang dibenarkan sahaja.
     </p>
   </div>
 
+  <!-- PAPARAN 2: HALAMAN UTAMA / DASHBOARD (MUNCUL SELEPAS LOG MASUK) -->
+  <div class="card" id="dashboardView">
+    <div class="logo-wrapper">
+      <img src="logo.png" alt="Logo Sekolah" class="logo-img">
+    </div>
+
+    <h1 class="title">MODUL GURU</h1>
+    <h2 class="subtitle">SK PENDIDIKAN KHAS MIRI</h2>
+
+    <div class="dashboard-content">
+      <span class="user-badge" id="userDisplay">GURU: -</span>
+      <p class="info-text">
+        Selamat datang ke <strong>Sistem Fail Peribadi Murid</strong>. Log masuk telah berjaya диlakukan.
+      </p>
+    </div>
+
+    <button type="button" class="btn btn-logout" id="logoutBtn">Log Keluar</button>
+  </div>
+
   <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault(); 
+    const loginForm = document.getElementById('loginForm');
+    const loginView = document.getElementById('loginView');
+    const dashboardView = document.getElementById('dashboardView');
+    const userDisplay = document.getElementById('userDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const icInput = document.getElementById('ic_number');
+
+    // Proses apabila butang Log Masuk ditekan
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault(); // Mengelakkan muat semula halaman / ralat 404 & 405
       
-      // =========================================================================
-      // GANTIKAN URL DI BAWAH KEPADA PAUTAN SEBENAR HALAMAN SELEPAS LOG MASUK
-      // Contoh: 'https://docs.google.com/forms/d/e/...' atau 'halaman_utama.html'
-      // =========================================================================
+      const icValue = icInput.value.trim();
       
-      window.location.href = 'https://pautan-sebenar-anda.com'; 
+      if(icValue !== "") {
+        userDisplay.textContent = "GURU NO. KP: " + icValue;
+        
+        // Tukar paparan daripada Log Masuk ke Dashboard
+        loginView.style.display = 'none';
+        dashboardView.style.display = 'block';
+      }
+    });
+
+    // Proses apabila butang Log Keluar ditekan
+    logoutBtn.addEventListener('click', function() {
+      // Kembali ke paparan log masuk
+      dashboardView.style.display = 'none';
+      loginView.style.display = 'block';
+      icInput.value = '';
     });
   </script>
 
