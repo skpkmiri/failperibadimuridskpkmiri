@@ -93,8 +93,14 @@
             const [noticeText, setNoticeText] = useState("Sila pastikan semua maklumat dan rekod fail peribadi murid dikemaskini ke dalam sistem selewat-lewatnya pada hujung bulan ini.\n\nSila rujuk Guru Data sekiranya terdapat sebarang masalah. Terima kasih.");
             const [tempNotice, setTempNotice] = useState("");
 
-            // State untuk borang tambah murid
-            const [newStudent, setNewStudent] = useState({ name: '', kelas: '' });
+            // State untuk borang tambah murid (Dikemaskini mengikut gambar rujukan)
+            const [newStudent, setNewStudent] = useState({ 
+                name: '', 
+                kelas: '',
+                darjah: '',
+                tahunMasuk: '2026',
+                guruKelas: ''
+            });
 
             useEffect(() => {
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv";
@@ -183,7 +189,6 @@
                 }
             };
 
-            // FUNGSI BUTANG: Muat Turun
             const handleDownload = () => {
                 const csvContent = "data:text/csv;charset=utf-8,Nama Murid,Kelas\n" + 
                                    students.map(e => `"${e.name}","${e.kelas}"`).join("\n");
@@ -196,7 +201,6 @@
                 document.body.removeChild(link);
             };
 
-            // FUNGSI BUTANG: Arkib
             const handleArchive = () => {
                 alert("Fungsi Arkib sedang diselenggara.");
             };
@@ -206,7 +210,9 @@
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
                     setStudents([{ name: newStudent.name.toUpperCase(), kelas: newStudent.kelas.toUpperCase() }, ...students]);
-                    setNewStudent({ name: '', kelas: '' });
+                    
+                    // Reset borang selepas simpan
+                    setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
                 }
             };
@@ -403,7 +409,7 @@
                     {selectedStudent && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                             <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-                                <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
+                                <div className="bg-[#2563eb] p-4 flex justify-between items-center text-white">
                                     <h3 className="font-bold text-lg"><i className="fas fa-user-graduate mr-2"></i> Profil Murid</h3>
                                     <button onClick={() => setSelectedStudent(null)} className="text-white hover:text-blue-200">
                                         <i className="fas fa-times text-xl"></i>
@@ -434,43 +440,100 @@
                         </div>
                     )}
 
-                    {/* MODAL: Tambah Murid */}
+                    {/* MODAL: Tambah Murid (Rekaan baharu berdasarkan imej) */}
                     {showAddModal && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
-                                <div className="bg-blue-600 p-4 flex justify-between items-center text-white">
-                                    <h3 className="font-bold text-lg"><i className="fas fa-user-plus mr-2"></i> Tambah Murid Baharu</h3>
-                                    <button onClick={() => setShowAddModal(false)} className="text-white hover:text-blue-200">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+                                
+                                {/* Header Biru */}
+                                <div className="bg-[#2563eb] p-5 flex justify-between items-center text-white">
+                                    <h3 className="font-bold text-lg flex items-center">
+                                        <i className="fas fa-user-plus mr-2"></i> Tambah Murid Baharu
+                                    </h3>
+                                    <button onClick={() => setShowAddModal(false)} className="text-white hover:text-blue-200 focus:outline-none">
                                         <i className="fas fa-times text-xl"></i>
                                     </button>
                                 </div>
-                                <form onSubmit={submitNewStudent} className="p-6 space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nama Penuh Murid</label>
-                                        <input 
-                                            type="text" required
-                                            value={newStudent.name} 
-                                            onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
-                                            placeholder="Contoh: AHMAD BIN ABU"
-                                        />
+                                
+                                {/* Borang */}
+                                <form onSubmit={submitNewStudent} className="p-6">
+                                    <div className="space-y-5">
+                                        
+                                        {/* Baris 1: Nama Penuh */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Penuh Murid</label>
+                                            <input 
+                                                type="text" required
+                                                value={newStudent.name} 
+                                                onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                placeholder="CONTOH: AHMAD BIN ALI"
+                                            />
+                                        </div>
+                                        
+                                        {/* Baris 2: Kelas & Darjah/Tahun */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kelas</label>
+                                                <input 
+                                                    type="text" required
+                                                    value={newStudent.kelas} 
+                                                    onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                    placeholder="CONTOH: 1BD"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Darjah / Tahun</label>
+                                                <input 
+                                                    type="text" required
+                                                    value={newStudent.darjah} 
+                                                    onChange={(e) => setNewStudent({...newStudent, darjah: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
+                                                    placeholder="CONTOH: 1"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Baris 3: Tahun Kemasukan & Nama Guru Kelas */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tahun Kemasukan</label>
+                                                <input 
+                                                    type="number" required
+                                                    value={newStudent.tahunMasuk} 
+                                                    onChange={(e) => setNewStudent({...newStudent, tahunMasuk: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="2026"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Guru Kelas</label>
+                                                <input 
+                                                    type="text"
+                                                    value={newStudent.guruKelas} 
+                                                    onChange={(e) => setNewStudent({...newStudent, guruKelas: e.target.value})}
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="Opsional"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
-                                        <input 
-                                            type="text" required
-                                            value={newStudent.kelas} 
-                                            onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
-                                            placeholder="Contoh: 1BD"
-                                        />
-                                    </div>
-                                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3 mt-4">
-                                        <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+
+                                    {/* Butang Batal & Simpan - Saiz Separuh-Separuh */}
+                                    <div className="pt-6 flex gap-4 mt-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowAddModal(false)} 
+                                            className="w-1/2 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors focus:outline-none"
+                                        >
                                             Batal
                                         </button>
-                                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                                            Simpan Rekod
+                                        <button 
+                                            type="submit" 
+                                            className="w-1/2 py-3 bg-[#2563eb] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors focus:outline-none"
+                                        >
+                                            Simpan Murid
                                         </button>
                                     </div>
                                 </form>
