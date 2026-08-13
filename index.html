@@ -22,7 +22,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #f3f4f6;
+            background-color: #f8f9fc;
         }
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
@@ -85,6 +85,7 @@
 
             const [searchTerm, setSearchTerm] = useState('');
             const [viewingFile, setViewingFile] = useState(null); 
+            const [activeTab, setActiveTab] = useState('rekod'); // 'rekod' | 'kandungan'
             
             const [showAddModal, setShowAddModal] = useState(false);
             const [showEditModal, setShowEditModal] = useState(false);
@@ -95,7 +96,7 @@
             const [tempNotice, setTempNotice] = useState("");
 
             const [newStudent, setNewStudent] = useState({ 
-                name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' 
+                name: '', kelas: '', darjah: '1', tahunMasuk: '2026', guruKelas: '' 
             });
 
             const senaraiKandungan = [
@@ -159,6 +160,8 @@
                                         parsedStudents.push({ 
                                             name: namaMurid, 
                                             kelas: kelasMurid,
+                                            darjah: '1',
+                                            tahunMasuk: '2026',
                                             noPendaftaran: '', tarikhMasuk: '', jantina: '', bangsa: '', 
                                             asramaHarian: '', tarikhLahir: '', tempatLahir: '', namaWaris: '', 
                                             pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
@@ -232,13 +235,13 @@
                         pekerjaanWaris: '', alamat: '', icWaris: '', telRumah: '', 
                         hpWaris: '', jawatanKhas: '', profilePic: null
                     }, ...students]);
-                    setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
+                    setNewStudent({ name: '', kelas: '', darjah: '1', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
                 }
             };
 
             const handleDeleteStudent = () => {
-                if(window.confirm(`Adakah anda pasti mahu memadam rekod "${viewingFile.name}" secara kekal dari sistem paparan ini?`)) {
+                if(window.confirm(`Adakah anda pasti mahu memadam/gugur rekod "${viewingFile.name}" secara kekal?`)) {
                     setStudents(students.filter(s => s.name !== viewingFile.name));
                     setViewingFile(null);
                 }
@@ -346,117 +349,146 @@
             if (viewingFile) {
                 return (
                     <div className="min-h-screen bg-[#f8f9fc]">
-                        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
+                        <!-- Pengepala Atas Pasangan Gambar -->
+                        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
                             <div className="flex-1">
-                                <button onClick={() => setViewingFile(null)} className="text-[#4b5563] hover:text-black font-semibold text-lg flex items-center">
-                                    <i className="fas fa-angle-left text-2xl mr-2"></i> Kembali
+                                <button onClick={() => setViewingFile(null)} className="text-gray-700 hover:text-black font-semibold text-base flex items-center gap-1.5 transition-colors">
+                                    <i className="fas fa-chevron-left text-lg"></i> Kembali
                                 </button>
                             </div>
                             
                             <div className="flex-1 text-center">
-                                <h1 className="text-xl font-bold text-gray-900">{viewingFile.name}</h1>
-                                <p className="text-sm text-gray-500 font-medium">{viewingFile.kelas}</p>
+                                <h1 className="text-lg font-bold text-gray-900 tracking-wide uppercase">{viewingFile.name}</h1>
+                                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                                    {viewingFile.kelas} {viewingFile.darjah ? `(Darjah ${viewingFile.darjah})` : ''} • {viewingFile.tahunMasuk || '2026'}
+                                </p>
                             </div>
 
-                            <div className="flex-1 flex justify-end gap-3">
-                                <button onClick={openEditModal} className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors" title="Kemaskini Rekod">
-                                    <i className="fas fa-edit"></i>
+                            <div className="flex-1 flex justify-end gap-2.5">
+                                <button onClick={openEditModal} className="w-9 h-9 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors shadow-sm" title="Kemaskini Rekod">
+                                    <i className="fas fa-pen-to-square"></i>
                                 </button>
-                                <button onClick={handleDeleteStudent} className="px-4 py-2 text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-lg hover:bg-[#fee2e2] transition-colors flex items-center font-bold text-sm">
-                                    <i className="fas fa-user-minus mr-2"></i> Padam
+                                <button onClick={handleDeleteStudent} className="px-3.5 py-1.5 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center font-bold text-xs gap-1.5 shadow-sm">
+                                    <i className="fas fa-user-minus text-red-500"></i> Gugur
                                 </button>
                             </div>
                         </div>
 
-                        <div className="max-w-5xl mx-auto mt-8 px-4 pb-12 space-y-8">
-                            
-                            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                                <div className="bg-[#f8fafc] border-b border-gray-200 px-6 py-4">
-                                    <h3 className="font-bold text-[#64748b] text-center text-lg uppercase tracking-wider">Rekod Peribadi Murid</h3>
-                                </div>
-                                
-                                <div className="flex flex-col items-center justify-center py-6 border-b border-gray-200">
-                                    <div className="w-28 h-36 bg-gray-50 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center mb-4 overflow-hidden relative">
-                                        {viewingFile.profilePic ? (
-                                            <img src={viewingFile.profilePic} alt="Gambar Pasport" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="text-center p-2 text-gray-400">
-                                                <i className="fas fa-user text-4xl mb-2"></i>
-                                                <p className="text-[10px] uppercase font-bold text-gray-400">Gambar Pasport</p>
-                                            </div>
-                                        )}
+                        <!-- Bar Navigasi Tab (Rekod Peribadi / Kandungan Fail) -->
+                        <div className="bg-white border-b border-gray-200 flex justify-center gap-12 shadow-sm">
+                            <button 
+                                onClick={() => setActiveTab('rekod')}
+                                className={`py-3.5 px-4 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
+                                    activeTab === 'rekod' 
+                                        ? 'border-blue-600 text-blue-600' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-800'
+                                }`}
+                            >
+                                <i className="fas fa-user"></i> Rekod Peribadi
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('kandungan')}
+                                className={`py-3.5 px-4 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
+                                    activeTab === 'kandungan' 
+                                        ? 'border-blue-600 text-blue-600' 
+                                        : 'border-transparent text-gray-500 hover:text-gray-800'
+                                }`}
+                            >
+                                <i className="fas fa-folder"></i> Kandungan Fail
+                            </button>
+                        </div>
+
+                        <!-- Kandungan mengikut Tab yang dipilih -->
+                        <div className="max-w-5xl mx-auto mt-6 px-4 pb-12">
+                            {activeTab === 'rekod' ? (
+                                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="bg-gray-50/60 border-b border-gray-200 px-6 py-3.5 flex justify-between items-center">
+                                        <h3 className="font-bold text-gray-800 text-sm tracking-wider uppercase">REKOD PERIBADI MURID</h3>
+                                        <button onClick={openEditModal} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-1.5 rounded-lg text-xs font-bold border border-blue-200 transition-colors shadow-sm">
+                                            Kemaskini
+                                        </button>
                                     </div>
                                     
-                                    <div className="flex gap-2">
-                                        <label className="cursor-pointer bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center">
-                                            <i className="fas fa-camera mr-2"></i> Muat Naik
-                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                        </label>
+                                    <div className="flex flex-col items-center justify-center py-6 border-b border-gray-200">
+                                        <div className="w-28 h-36 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center mb-4 overflow-hidden relative shadow-inner">
+                                            {viewingFile.profilePic ? (
+                                                <img src={viewingFile.profilePic} alt="Gambar Pasport" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="text-center p-2 text-gray-400">
+                                                    <i className="fas fa-user text-4xl mb-2"></i>
+                                                    <p className="text-[10px] uppercase font-bold text-gray-400">Gambar Pasport</p>
+                                                </div>
+                                            )}
+                                        </div>
                                         
-                                        {viewingFile.profilePic && (
-                                            <button onClick={handleDeleteImage} className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center">
-                                                <i className="fas fa-trash-alt mr-2"></i> Padam
-                                            </button>
-                                        )}
+                                        <div className="flex gap-2">
+                                            <label className="cursor-pointer bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5">
+                                                <i className="fas fa-camera"></i> Muat Naik
+                                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                            </label>
+                                            
+                                            {viewingFile.profilePic && (
+                                                <button onClick={handleDeleteImage} className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5">
+                                                    <i className="fas fa-trash-alt"></i> Padam
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="py-3 px-4 w-16 text-gray-700 font-bold border border-gray-300 text-center text-sm">Bil</th>
+                                                <th className="py-3 px-4 w-1/3 text-gray-700 font-bold border border-gray-300 text-sm uppercase">PERKARA</th>
+                                                <th className="py-3 px-4 text-gray-700 font-bold border border-gray-300 text-sm"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {senaraiPerkara.map((item, index) => (
+                                                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="py-3 px-4 text-gray-600 border border-gray-300 text-center font-medium text-sm">{index + 1}</td>
+                                                    <td className="py-3 px-4 font-medium text-gray-800 border border-gray-300 text-sm">{item.label}</td>
+                                                    <td className="py-3 px-4 text-gray-800 border border-gray-300 text-sm">
+                                                        {viewingFile[item.id] || <span className="text-gray-400 italic">Belum diisi</span>}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="bg-gray-50/60 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                                        <h3 className="font-bold text-gray-700 text-sm tracking-wider uppercase"><i className="fas fa-folder-open mr-2 text-blue-600"></i> SENARAI KANDUNGAN FAIL</h3>
+                                    </div>
+                                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {senaraiKandungan.map((dokumen, index) => (
+                                            <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow bg-gray-50/50 hover:bg-white">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                                                        {index + 1}
+                                                    </div>
+                                                    <span className="text-gray-800 font-semibold text-sm">{dokumen}</span>
+                                                </div>
+                                                
+                                                <label className="cursor-pointer text-gray-600 hover:text-blue-600 bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors flex items-center gap-1 shadow-sm">
+                                                    <i className="fas fa-upload"></i> Muat Naik
+                                                    <input 
+                                                        type="file" 
+                                                        className="hidden" 
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                alert(`Anda telah memilih fail: "${file.name}" untuk ${dokumen}.`);
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="py-3 px-4 w-16 text-gray-700 font-bold border border-gray-300 text-center text-sm">Bil</th>
-                                            <th className="py-3 px-4 w-1/3 text-gray-700 font-bold border border-gray-300 text-sm uppercase">PERKARA</th>
-                                            <th className="py-3 px-4 text-gray-700 font-bold border border-gray-300 text-sm"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {senaraiPerkara.map((item, index) => (
-                                            <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                                <td className="py-3 px-4 text-gray-600 border border-gray-300 text-center font-medium">{index + 1}</td>
-                                                <td className="py-3 px-4 font-medium text-gray-800 border border-gray-300">{item.label}</td>
-                                                <td className="py-3 px-4 text-gray-800 border border-gray-300">
-                                                    {viewingFile[item.id] || <span className="text-gray-400 italic">Belum diisi</span>}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* SENARAI KANDUNGAN FAIL DENGAN BUTANG MUAT NAIK YANG BERFUNGSI */}
-                            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                                <div className="bg-[#f8fafc] border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                                    <h3 className="font-bold text-[#64748b]"><i className="fas fa-folder-open mr-2"></i> SENARAI KANDUNGAN FAIL</h3>
-                                </div>
-                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {senaraiKandungan.map((dokumen, index) => (
-                                        <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow bg-gray-50 hover:bg-white">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-                                                    {index + 1}
-                                                </div>
-                                                <span className="text-gray-800 font-semibold text-sm">{dokumen}</span>
-                                            </div>
-                                            
-                                            <label className="cursor-pointer text-gray-500 hover:text-blue-600 bg-white border border-gray-300 rounded px-3 py-1.5 text-xs font-bold transition-colors flex items-center">
-                                                <i className="fas fa-upload mr-1"></i> Muat Naik
-                                                <input 
-                                                    type="file" 
-                                                    className="hidden" 
-                                                    onChange={(e) => {
-                                                        const file = e.target.files[0];
-                                                        if (file) {
-                                                            alert(`Anda telah memilih fail: "${file.name}" untuk ${dokumen}.`);
-                                                        }
-                                                    }}
-                                                />
-                                            </label>
-
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
+                            )}
                         </div>
 
                         {showEditModal && (
@@ -481,6 +513,17 @@
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Kelas</label>
                                                     <input type="text" value={editForm?.kelas || ''} onChange={(e) => setEditForm({...editForm, kelas: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Darjah / Tahun</label>
+                                                    <input type="text" value={editForm?.darjah || ''} onChange={(e) => setEditForm({...editForm, darjah: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tahun Kemasukan</label>
+                                                    <input type="text" value={editForm?.tahunMasuk || ''} onChange={(e) => setEditForm({...editForm, tahunMasuk: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" />
                                                 </div>
                                             </div>
 
@@ -694,7 +737,10 @@
                                         filteredStudents.map((student, index) => (
                                             <tr 
                                                 key={index} 
-                                                onClick={() => setViewingFile(student)}
+                                                onClick={() => {
+                                                    setViewingFile(student);
+                                                    setActiveTab('rekod');
+                                                }}
                                                 className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors"
                                             >
                                                 <td className="py-4 px-6 font-bold text-gray-800">{student.name}</td>
@@ -748,7 +794,7 @@
                                                     value={newStudent.kelas} 
                                                     onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
                                                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
-                                                    placeholder="Contoh: 1BD"
+                                                    placeholder="Contoh: 1BP DELIMA"
                                                 />
                                             </div>
                                             <div>
