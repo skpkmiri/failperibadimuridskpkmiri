@@ -85,7 +85,7 @@
 
             // State Fungsi Interaktif
             const [searchTerm, setSearchTerm] = useState('');
-            const [viewingFile, setViewingFile] = useState(null); // Ganti modal kecil dengan paparan penuh terus
+            const [viewingFile, setViewingFile] = useState(null); 
             
             const [showAddModal, setShowAddModal] = useState(false);
             const [isEditingNotice, setIsEditingNotice] = useState(false);
@@ -149,7 +149,7 @@
                             .catch((error) => {
                                 console.error("Ralat Firebase:", error);
                                 clearTimeout(fallbackTimer);
-                                setLoading(false); // Membenarkan aplikasi diteruskan walaupun Firebase ralat
+                                setLoading(false); 
                             });
                     }
                 }, 100);
@@ -189,7 +189,8 @@
             const submitNewStudent = (e) => {
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
-                    setStudents([{ name: newStudent.name.toUpperCase(), kelas: newStudent.kelas.toUpperCase() }, ...students]);
+                    // Dikekalkan casing asal seperti ditaip pengguna
+                    setStudents([{ name: newStudent.name, kelas: newStudent.kelas }, ...students]);
                     setNewStudent({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
                     setShowAddModal(false);
                 }
@@ -264,15 +265,15 @@
                             </div>
                             
                             <div className="flex-1 text-center">
-                                <h1 className="text-xl font-bold text-gray-900 uppercase">{viewingFile.name}</h1>
+                                <h1 className="text-xl font-bold text-gray-900">{viewingFile.name}</h1>
                                 <p className="text-sm text-gray-500 font-medium">{viewingFile.kelas} • 2026</p>
                             </div>
 
                             <div className="flex-1 flex justify-end gap-3">
-                                <button className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                                <button onClick={() => alert("Fungsi edit sedang diselenggara.")} className="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
                                     <i className="fas fa-edit"></i>
                                 </button>
-                                <button className="px-4 py-2 text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-lg hover:bg-[#fee2e2] transition-colors flex items-center font-bold text-sm">
+                                <button onClick={() => alert("Pengguguran maklumat dibatalkan demi keselamatan data.")} className="px-4 py-2 text-[#dc2626] bg-[#fef2f2] border border-[#fecaca] rounded-lg hover:bg-[#fee2e2] transition-colors flex items-center font-bold text-sm">
                                     <i className="fas fa-user-minus mr-2"></i> Gugur
                                 </button>
                             </div>
@@ -303,7 +304,7 @@
                                         <tr className="hover:bg-gray-50 transition-colors">
                                             <td className="py-5 px-6 text-gray-500 border-r border-b border-gray-200 text-center">1</td>
                                             <td className="py-5 px-6 font-bold text-gray-800 border-r border-b border-gray-200">Nama</td>
-                                            <td className="py-5 px-6 text-gray-800 uppercase font-medium border-b border-gray-200">{viewingFile.name}</td>
+                                            <td className="py-5 px-6 text-gray-800 font-medium border-b border-gray-200">{viewingFile.name}</td>
                                         </tr>
                                         <tr className="hover:bg-gray-50 transition-colors">
                                             <td className="py-5 px-6 text-gray-500 border-r border-b border-gray-200 text-center">2</td>
@@ -436,14 +437,14 @@
                                 <tbody>
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map((student, index) => (
-                                            // Terus buka halaman penuh bila baris ditekan
                                             <tr 
                                                 key={index} 
                                                 onClick={() => setViewingFile(student)}
                                                 className="border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition-colors"
                                             >
-                                                <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
-                                                <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
+                                                {/* Paparan nama murid kini sama mengikut asal tanpa dipaksa menjadi huruf besar */}
+                                                <td className="py-4 px-6 font-bold text-gray-800">{student.name}</td>
+                                                <td className="py-4 px-6 text-gray-500">{student.kelas}</td>
                                             </tr>
                                         ))
                                     ) : (
@@ -482,8 +483,8 @@
                                                 type="text" required
                                                 value={newStudent.name} 
                                                 onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
-                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
-                                                placeholder="CONTOH: AHMAD BIN ALI"
+                                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                placeholder="Contoh: Ahmad Bin Ali"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -493,8 +494,8 @@
                                                     type="text" required
                                                     value={newStudent.kelas} 
                                                     onChange={(e) => setNewStudent({...newStudent, kelas: e.target.value})}
-                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
-                                                    placeholder="CONTOH: 1BD"
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="Contoh: 1BD"
                                                 />
                                             </div>
                                             <div>
@@ -503,8 +504,8 @@
                                                     type="text" required
                                                     value={newStudent.darjah} 
                                                     onChange={(e) => setNewStudent({...newStudent, darjah: e.target.value})}
-                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase text-gray-700"
-                                                    placeholder="CONTOH: 1"
+                                                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+                                                    placeholder="Contoh: 1"
                                                 />
                                             </div>
                                         </div>
