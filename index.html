@@ -15,7 +15,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel -->
+    <!-- Babel (Untuk compile JSX dalam browser) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -31,6 +31,7 @@
 <body>
     <div id="root"></div>
 
+    <!-- Modul Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -57,23 +58,26 @@
         window.onAuthStateChanged = onAuthStateChanged;
     </script>
 
+    <!-- Skrip Aplikasi React -->
     <script type="text/babel">
         const { useState, useEffect } = React;
 
         function App() {
+            // State Log Masuk
             const [isAuthenticated, setIsAuthenticated] = useState(false);
             const [icNumber, setIcNumber] = useState('');
             const [error, setError] = useState('');
             const [loading, setLoading] = useState(true);
             
+            // State Data
             const [students, setStudents] = useState([]);
             const [authorizedIcs, setAuthorizedIcs] = useState([
                 '810808135501', '910110136471', '880927135284', '920422135813', '970226135344', 'admin123'
             ]);
 
+            // State Fungsi Interaktif
             const [searchTerm, setSearchTerm] = useState('');
-            const [selectedStudent, setSelectedStudent] = useState(null); // Untuk Modal Kecil
-            const [viewingFile, setViewingFile] = useState(null); // Untuk Halaman Fail Peribadi Penuh
+            const [viewingFile, setViewingFile] = useState(null); // Mengawal Paparan Penuh
             
             const [showAddModal, setShowAddModal] = useState(false);
             const [isEditingNotice, setIsEditingNotice] = useState(false);
@@ -82,6 +86,7 @@
 
             const [newStudent, setNewStudent] = useState({ name: '', kelas: '', darjah: '', tahunMasuk: '2026', guruKelas: '' });
 
+            // Pengambilan Data
             useEffect(() => {
                 const fetchCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTy_hVJvUzEnM_cIVpVTn0-2qNk44eGDDHYHggwx1L1m0OwYKS1MsdIqAg_P1UJ6UevBf8EVVJCCiMY/pub?output=csv";
                 
@@ -115,7 +120,7 @@
                             setStudents(parsedStudents);
                         }
                     })
-                    .catch(err => console.error(err));
+                    .catch(err => console.error("Ralat muat turun CSV:", err));
 
                 const checkFirebase = setInterval(() => {
                     if (window.firebaseAuth) {
@@ -128,6 +133,7 @@
                 return () => clearInterval(checkFirebase);
             }, []);
 
+            // Log Masuk
             const handleLogin = (e) => {
                 e.preventDefault();
                 const cleanInput = icNumber.replace(/-/g, '');
@@ -135,12 +141,7 @@
                 else { setError('No. KP tidak sah atau tiada dalam rekod.'); }
             };
 
-            // Fungsi ini dipanggil apabila butang "Buka Fail Peribadi" diklik
-            const handleBukaFail = (student) => {
-                setSelectedStudent(null); // Tutup modal kecil
-                setViewingFile(student);  // Buka halaman fail penuh
-            };
-
+            // Tambah Murid
             const submitNewStudent = (e) => {
                 e.preventDefault();
                 if(newStudent.name.trim() !== '') {
@@ -155,17 +156,19 @@
                 student.kelas.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
-            if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><i className="fas fa-spinner fa-spin text-2xl text-blue-600"></i></div>;
+            // Skrin Loading
+            if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><i className="fas fa-spinner fa-spin text-3xl text-blue-600"></i></div>;
 
+            // Skrin Log Masuk
             if (!isAuthenticated) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
-                        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+                    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundImage: "url('sekolah.png')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: 'rgba(255, 255, 255, 0.7)', backgroundBlendMode: 'overlay' }}>
+                        <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
                             <h1 className="text-2xl font-bold text-center mb-6">Fail Peribadi Murid</h1>
                             <form onSubmit={handleLogin} className="space-y-4">
-                                <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} className="w-full px-4 py-3 border rounded-lg" placeholder="No Kad Pengenalan" required />
-                                {error && <div className="text-red-500 text-sm">{error}</div>}
-                                <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg">Log Masuk</button>
+                                <input type="text" value={icNumber} onChange={(e) => setIcNumber(e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Nombor Kad Pengenalan" required />
+                                {error && <div className="text-red-500 text-sm"><i className="fas fa-exclamation-circle mr-1"></i> {error}</div>}
+                                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Log Masuk</button>
                             </form>
                         </div>
                     </div>
@@ -173,12 +176,12 @@
             }
 
             // ==========================================
-            // HALAMAN FAIL PERIBADI PENUH (BARU DITAMBAH)
+            // HALAMAN FAIL PERIBADI PENUH
             // ==========================================
             if (viewingFile) {
                 return (
                     <div className="min-h-screen bg-[#f8f9fc]">
-                        {/* Header Navigation Bar */}
+                        {/* Header Atas */}
                         <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
                             <div className="flex-1">
                                 <button onClick={() => setViewingFile(null)} className="text-[#4b5563] hover:text-black font-semibold text-lg flex items-center">
@@ -201,11 +204,11 @@
                             </div>
                         </div>
 
-                        {/* Content Area */}
+                        {/* Kandungan Fail */}
                         <div className="max-w-5xl mx-auto mt-8 px-4 pb-12">
                             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                 
-                                {/* Profile Picture Section */}
+                                {/* Bahagian Gambar Profil */}
                                 <div className="flex flex-col items-center justify-center py-10">
                                     <div className="w-32 h-32 bg-gray-200 rounded-2xl flex items-center justify-center mb-4">
                                         <i className="fas fa-user text-6xl text-gray-400"></i>
@@ -213,7 +216,7 @@
                                     <p className="text-gray-400 italic font-medium">Tiada gambar profil</p>
                                 </div>
 
-                                {/* Table Details */}
+                                {/* Jadual Maklumat */}
                                 <table className="w-full text-left border-collapse border-t border-gray-200">
                                     <thead className="bg-[#f8fafc]">
                                         <tr>
@@ -259,7 +262,7 @@
                     </nav>
 
                     <div className="max-w-7xl mx-auto px-4 mt-6 pb-20 relative z-10">
-                        {/* Bar Carian & Butang */}
+                        {/* Bar Carian & Butang Tambah */}
                         <div className="flex flex-col md:flex-row gap-4 mb-6">
                             <div className="flex-grow relative">
                                 <i className="fas fa-search absolute left-4 top-4 text-gray-400"></i>
@@ -270,7 +273,7 @@
                             </button>
                         </div>
 
-                        {/* Jadual */}
+                        {/* Jadual Utama */}
                         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-gray-50 border-b">
@@ -280,49 +283,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredStudents.map((student, index) => (
-                                        <tr key={index} onClick={() => setSelectedStudent(student)} className="border-b hover:bg-blue-50 cursor-pointer">
-                                            <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
-                                            <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
+                                    {filteredStudents.length > 0 ? (
+                                        filteredStudents.map((student, index) => (
+                                            // INI ADALAH FUNGSI YANG DIUBAH: Terus buka fail penuh bila baris diklik
+                                            <tr key={index} onClick={() => setViewingFile(student)} className="border-b hover:bg-blue-50 cursor-pointer">
+                                                <td className="py-4 px-6 font-bold text-gray-800 uppercase">{student.name}</td>
+                                                <td className="py-4 px-6 text-gray-500 uppercase">{student.kelas}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="2" className="py-8 px-6 text-center text-gray-500">
+                                                Tiada rekod dijumpai.
+                                            </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
-                    {/* MODAL PROFIL (KECIL) */}
-                    {selectedStudent && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-                                <div className="bg-[#2563eb] p-5 flex justify-between items-center text-white">
-                                    <h3 className="font-bold text-lg"><i className="fas fa-user-graduate mr-2"></i> Profil Murid</h3>
-                                    <button onClick={() => setSelectedStudent(null)} className="hover:text-blue-200"><i className="fas fa-times text-xl"></i></button>
-                                </div>
-                                <div className="p-6 space-y-6">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-500">Nama Penuh</label>
-                                        <div className="text-xl font-extrabold text-gray-800 uppercase">{selectedStudent.name}</div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-500">Kelas</label>
-                                            <div className="text-lg font-bold text-gray-700 uppercase">{selectedStudent.kelas}</div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-500">Status Rekod</label>
-                                            <div className="text-lg font-bold text-[#16a34a] flex items-center"><i className="fas fa-check-circle mr-2"></i> Aktif</div>
-                                        </div>
-                                    </div>
-                                    <div className="pt-5 border-t flex justify-end">
-                                        <button onClick={() => handleBukaFail(selectedStudent)} className="bg-[#dbeafe] text-[#2563eb] px-5 py-2.5 rounded-xl font-bold hover:bg-[#bfdbfe]">
-                                            <i className="fas fa-folder-open mr-2"></i> Buka Fail Peribadi
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* MODAL TAMBAH MURID */}
                     {showAddModal && (
